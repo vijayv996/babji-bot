@@ -1,0 +1,190 @@
+import { MongoClient } from 'mongodb';
+import { EmbedBuilder  } from 'discord.js';
+const dbName = "anagramsDB";
+const client = new MongoClient("mongodb://localhost:27017");
+
+async function connectDB() {
+    try {
+        await client.connect();
+        console.log("Connected to database");
+        return client.db(dbName);
+    } catch (error) {
+        console.error("Error connecting to database:", error);
+    }
+}
+
+let db;
+(async () => {
+    db = await connectDB();
+})();
+
+async function newAnagram(serverId) {
+    let word;
+    try {
+        let response = await fetch('https://random-word-api.herokuapp.com/word');
+        let data = await response.json();
+        word = data[0];
+    } catch (error) {
+        console.log("Error fetching word:", error);
+    }
+    console.log(word);
+    
+    let scrambled = scramble(word);
+    await db.collection('anagrams').updateOne(
+        { serverId: serverId },
+        { $set: {
+            originalWord: word,
+            scrambledWord: scrambled,
+            hints: 2
+        }},
+        { upsert: true }
+    )
+    
+    console.log(scrambled);
+    return scrambled;
+}
+
+function scramble(word) {
+    let scrambled = word.split('').sort(() => Math.random() - 0.5).join('');
+    if(scrambled === word) {
+        return scramble(word);
+    }
+    return scrambled;   
+}
+
+// function hint() {}
+
+async function skip(message) {
+    const serverId = message.guild.id;
+    const result = await db.collection('anagrams').findOne({ serverId: serverId })
+    await message.channel.send(`The word was: ${result.originalWord}`);
+    await new Promise(r => setTimeout(r, 2000));
+    await message.channel.send(`New word: ${await newAnagram(serverId)}`);
+}
+
+async function verifyString(message) {
+    const serverId = message.guild.id;
+    const userId = message.author.id;
+    const doc = await db.collection('anagrams').findOne({ serverId: serverId });
+    
+    const originalWord = doc.originalWord;
+    if(!originalWord) return;
+
+    if(originalWord !== message.content.toLowerCase()) {
+        return;
+    }
+
+    const wordScore = evalScore(originalWord);
+    await db.collection('leaderboard').updateOne(
+        {
+            serverId: serverId,
+            userId: userId
+        },
+        {
+            $inc: {
+                score: wordScore
+            }
+        },
+        {
+            upsert: true
+        }
+    );
+
+    const userScore = await getScore(message);
+    
+    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your total score is now ${userScore}.`);
+
+    await message.channel.send(`New word: ${await newAnagram(serverId)}`);
+}
+
+function evalScore(word) {;
+
+    if (!word) return 0;
+
+    // 1. Score based on length
+    const lengthScore = word.length * 10;
+
+    // 2. Letter frequency in English (rarer letters give higher scores)
+    const letterFrequency = {
+        e: 12.0, t: 9.1, a: 8.1, o: 7.7, i: 7.0, n: 6.7, s: 6.3, 
+        h: 6.1, r: 6.0, d: 4.3, l: 4.0, u: 2.8, c: 2.8, m: 2.4, 
+        w: 2.4, f: 2.2, g: 2.0, y: 2.0, p: 1.9, b: 1.5, v: 0.98, 
+        k: 0.77, j: 0.15, x: 0.15, q: 0.095, z: 0.074
+    };
+
+    let difficultyScore = 0;
+    const uniqueLetters = new Set(word);
+
+    for (let letter of uniqueLetters) {
+        if (letterFrequency.hasOwnProperty(letter)) {
+            difficultyScore += (13 - Math.min(13, letterFrequency[letter]));
+        } else {
+            difficultyScore += 5; // For non-alphabetic characters or unknown letters
+        }
+    }
+
+    // 3. Consider letter repetitions
+    const letterCounts = {};
+    for (let letter of word) {
+        letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+    }
+
+    let repetitionFactor = 0;
+    for (let count of Object.values(letterCounts)) {
+        repetitionFactor += count - 1;
+    }
+
+    const repetitionPenalty = Math.max(0, 5 - repetitionFactor);
+
+    // 4. Vowel-consonant ratio
+    const vowelsSet = new Set(['a', 'e', 'i', 'o', 'u']);
+    let vowels = 0;
+    for (let letter of word) {
+        if (vowelsSet.has(letter)) vowels++;
+    }
+
+    const consonants = word.length - vowels;
+    let balanceFactor = 1;
+
+    if (vowels === 0 || consonants === 0) {
+        balanceFactor = 1.5;
+    } else if (Math.min(vowels, consonants) / Math.max(vowels, consonants) < 0.25) {
+        balanceFactor = 1.3;
+    }
+
+    // 5. Final score calculation
+    const finalScore = (lengthScore + difficultyScore + repetitionPenalty) * balanceFactor;
+    return (Math.round(finalScore * 10) / 10 | 0);
+}
+
+async function getScore(message) {
+    const serverId = message.guild.id;
+    const userId = message.author.id;
+    const doc = await db.collection('leaderboard').findOne({ serverId: serverId, userId: userId });
+    const userScore = doc.score;
+    const higherScores = await db.collection('leaderboard').countDocuments({ 
+        serverId: serverId, 
+        score: { $gt: userScore }
+    });
+
+    return [userScore, higherScores + 1];
+}
+
+async function showLeaderboard(message) {
+    const serverId = message.guild.id;
+    const leaderboard = await db.collection('leaderboard').find({ serverId: serverId }).sort({ score: -1 }).limit(10).toArray();
+    const embed = new EmbedBuilder()
+        .setTitle("Anagrams Leaderboard")
+        .setColor("#0099ff")
+        .setDescription("Top 10 players")
+        .setTimestamp()
+        .setFooter({ text: "Anagrams Game" });
+
+    leaderboard.forEach((entry, index) => {
+        embed.addFields({ name: `${index + 1}. <@${entry.userId}>`, value: `Score: ${entry.score}` });
+    });
+
+    await message.channel.send({ embeds: [embed] });
+}
+
+export { newAnagram, verifyString, skip, getScore, showLeaderboard };

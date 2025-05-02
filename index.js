@@ -1,12 +1,13 @@
 import dotenv from 'dotenv';
 dotenv.config();
-
+import { newAnagram, verifyString, skip, getScore, showLeaderboard } from './anagrams.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
     ]
 });
 
@@ -17,7 +18,29 @@ client.on("ready", () => {
 client.login(process.env.DISCORD_TOKEN);
 
 client.on("messageCreate", async (message) => {
-    if(message.author.bot) return;
+    if(message.author.bot) {
+        return;
+    }
+    const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());
+    if(anagramChannels.includes(message.channel.id)) {
+        if(message.content.startsWith("!anagrams")) {
+            message.channel.send("Anagrams game started! The anagram");
+            message.channel.send(await newAnagram(message.guild.id));
+        }
+        
+        if(message.content.startsWith("!skip")) {
+            skip(message);
+        }
 
-    
+        if(message.content.startsWith("!lb")) {
+            showLeaderboard(message);
+        }
+
+        if(message.content.startsWith("!score")) {
+            const values = await getScore(message);
+            message.reply(`Your score is ${values[0]} and your rank in the server is ${values[1]}`);
+        }
+
+        verifyString(message);
+    }
 });
