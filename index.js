@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { newAnagram, verifyString, skip, getScore, showLeaderboard } from './anagrams.js';
+import { newAnagram, verifyString, skip, hint, getScore, showLeaderboard } from './anagrams.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 
 const client = new Client({
@@ -21,11 +21,16 @@ client.on("messageCreate", async (message) => {
     if(message.author.bot) {
         return;
     }
+    
     const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());
     if(anagramChannels.includes(message.channel.id)) {
         if(message.content.startsWith("!anagrams")) {
             message.channel.send("Anagrams game started! The anagram");
             message.channel.send(await newAnagram(message.guild.id));
+        }
+
+        if(message.content.startsWith("!hint")) {
+            hint(message);
         }
         
         if(message.content.startsWith("!skip")) {

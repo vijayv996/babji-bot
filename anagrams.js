@@ -21,7 +21,7 @@ let db;
 async function newAnagram(serverId) {
     let word;
     try {
-        let response = await fetch('https://random-word-api.herokuapp.com/word');
+        let response = await fetch('https://random-word-api.vercel.app/api?words=1');
         let data = await response.json();
         word = data[0];
     } catch (error) {
@@ -52,13 +52,50 @@ function scramble(word) {
     return scrambled;   
 }
 
-// function hint() {}
+async function hint(message) {
+    let serverId = message.guild.id;
+    let doc = await db.collection('anagrams').findOne({ serverId: serverId });
+    let w = doc.originalWord;
+    let s = doc.scrambledWord;
+    if(doc.hints === 2) {
+        s = s.replace(w[0], "");
+        s = w[0] + s;
+        message.channel.send(s);
+        await db.collection('anagrams').updateOne(
+            { serverId: serverId },
+            {
+                $set: {
+                    scrambledWord: s
+                },
+                $inc: {
+                    hints: -1
+                }
+            }
+        )
+    }
+    if(doc.hints === 1) {
+        s = s.replace(w[w.length - 1], "");
+        s = s + w[w.length - 1];
+        message.channel.send(s);
+        await db.collection('anagrams').updateOne(
+            { serverId: serverId },
+            {
+                $inc: {
+                    hints: -1
+                }
+            }
+        )
+    }
+    if(doc.hints === 0) {
+        message.channel.send(":: No more hints avaliable.");
+    }
+}
 
 async function skip(message) {
     const serverId = message.guild.id;
     const result = await db.collection('anagrams').findOne({ serverId: serverId })
     await message.channel.send(`The word was: ${result.originalWord}`);
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 5000));
     await message.channel.send(`New word: ${await newAnagram(serverId)}`);
 }
 
@@ -92,12 +129,12 @@ async function verifyString(message) {
 
     const userScore = await getScore(message);
     
-    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your total score is now ${userScore}.`);
+    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore[0]}.`);
 
     await message.channel.send(`New word: ${await newAnagram(serverId)}`);
 }
 
-function evalScore(word) {;
+function evalScore(word) {
 
     if (!word) return 0;
 
@@ -187,4 +224,4 @@ async function showLeaderboard(message) {
     await message.channel.send({ embeds: [embed] });
 }
 
-export { newAnagram, verifyString, skip, getScore, showLeaderboard };
+export { newAnagram, verifyString, skip, hint, getScore, showLeaderboard };
