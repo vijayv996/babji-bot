@@ -115,7 +115,7 @@ async function skip(message) {
 async function verifyString(message) {
     const serverId = message.guild.id;
     const userId = message.author.id;
-    if(message.content.startsWith("!anagrams")) return;
+    if(message.content.startsWith(".anagrams")) return;
 
     const doc = await db.collection('anagrams').findOne({ serverId: serverId });
     const originalWord = doc.originalWord;

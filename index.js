@@ -25,24 +25,24 @@ client.on("messageCreate", async (message) => {
     
     const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());
     if(anagramChannels.includes(message.channel.id)) {
-        if(message.content.startsWith("!anagrams")) {
+        if(message.content.startsWith(".anagrams")) {
             message.channel.send("Anagrams game started! The anagram");
             newAnagram(message);
         }
 
-        if(message.content.startsWith("!hint")) {
+        if(message.content.startsWith(".hint")) {
             hint(message);
         }
         
-        if(message.content.startsWith("!skip")) {
+        if(message.content.startsWith(".skip")) {
             skip(message);
         }
 
-        if(message.content.startsWith("!lb")) {
+        if(message.content.startsWith(".lb")) {
             showLeaderboard(message);
         }
 
-        if(message.content.startsWith("!score")) {
+        if(message.content.startsWith(".score")) {
             const values = await getScore(message);
             message.reply(`Your score is ${values[0]} and your rank in the server is ${values[1]}`);
         }
