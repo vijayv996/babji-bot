@@ -125,7 +125,7 @@ async function verifyString(message) {
     }
 
     const wordScore = evalScore(originalWord);
-    const updated = await db.collection('leaderboard').findOneAndUpdate(
+    await db.collection('leaderboard').findOneAndUpdate(
         {
             serverId: serverId,
             userId: userId
@@ -140,8 +140,8 @@ async function verifyString(message) {
             ReturnDocument: 'after'
         }
     );
-    
-    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${updated.score + wordScore}.`);
+    const userScore = getScore(message);
+    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
 
     newAnagram(message);
 }
