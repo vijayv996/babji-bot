@@ -87,7 +87,7 @@ async function hint(message) {
         )
     }
     if(doc.hints === 0) {
-        message.channel.send(":: No more hints avaliable.");
+        message.channel.send(":cry: No more hints avaliable.");
     }
 }
 
@@ -218,7 +218,7 @@ async function showLeaderboard(message) {
         .setFooter({ text: "Anagrams Game" });
 
     leaderboard.forEach((entry, index) => {
-        embed.addFields({ name: `${index + 1}. <@${entry.userId}>`, value: `Score: ${entry.score}` });
+        embed.addFields({ name: `${index + 1}. <@${entry.userId}>: ${entry.score}`, value: `` });
     });
 
     await message.channel.send({ embeds: [embed] });
