@@ -7,6 +7,7 @@ const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers,
         GatewayIntentBits.MessageContent
     ]
 });
@@ -26,7 +27,7 @@ client.on("messageCreate", async (message) => {
     if(anagramChannels.includes(message.channel.id)) {
         if(message.content.startsWith("!anagrams")) {
             message.channel.send("Anagrams game started! The anagram");
-            message.channel.send(await newAnagram(message.guild.id));
+            newAnagram(message);
         }
 
         if(message.content.startsWith("!hint")) {

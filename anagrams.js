@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, ReturnDocument } from 'mongodb';
 import { EmbedBuilder  } from 'discord.js';
 const dbName = "anagramsDB";
 const client = new MongoClient("mongodb://localhost:27017");
@@ -18,8 +18,9 @@ let db;
     db = await connectDB();
 })();
 
-async function newAnagram(serverId) {
+async function newAnagram(message) {
     let word;
+    let serverId = message.guild.id;
     try {
         let response = await fetch('https://random-word-api.vercel.app/api?words=1');
         let data = await response.json();
@@ -27,7 +28,6 @@ async function newAnagram(serverId) {
     } catch (error) {
         console.log("Error fetching word:", error);
     }
-    console.log(word);
     
     let scrambled = scramble(word);
     await db.collection('anagrams').updateOne(
@@ -40,8 +40,13 @@ async function newAnagram(serverId) {
         { upsert: true }
     )
     
+    const embed = new EmbedBuilder()
+                .setColor('#009933')
+                .setTitle(scrambled)
+                .setDescription('new anagram');
+            message.channel.send({ embeds: [embed] });
+    console.log(word);
     console.log(scrambled);
-    return scrambled;
 }
 
 function scramble(word) {
@@ -59,8 +64,12 @@ async function hint(message) {
     let s = doc.scrambledWord;
     if(doc.hints === 2) {
         s = s.replace(w[0], "");
+        const embed = new EmbedBuilder()
+            .setColor('#0099ff')
+            .setDescription('**' + w[0] + '**' + s)
+            .setFooter({ text: "first letter hint" });
         s = w[0] + s;
-        message.channel.send(s);
+        message.channel.send({ embeds: [embed] });
         await db.collection('anagrams').updateOne(
             { serverId: serverId },
             {
@@ -76,7 +85,11 @@ async function hint(message) {
     if(doc.hints === 1) {
         s = s.replace(w[w.length - 1], "");
         s = s + w[w.length - 1];
-        message.channel.send(s);
+        const embed = new EmbedBuilder()
+            .setColor('#0099ff')
+            .setDescription('**' + s[0] + '**' + s.slice(1, -1) + '**' + s[s.length - 1] + '**')
+            .setFooter({ text: "last letter hint" });
+        message.channel.send({ embeds: [embed]});
         await db.collection('anagrams').updateOne(
             { serverId: serverId },
             {
@@ -96,7 +109,7 @@ async function skip(message) {
     const result = await db.collection('anagrams').findOne({ serverId: serverId })
     await message.channel.send(`The word was: ${result.originalWord}`);
     await new Promise(r => setTimeout(r, 5000));
-    await message.channel.send(`New word: ${await newAnagram(serverId)}`);
+    newAnagram(message);
 }
 
 async function verifyString(message) {
@@ -112,7 +125,7 @@ async function verifyString(message) {
     }
 
     const wordScore = evalScore(originalWord);
-    await db.collection('leaderboard').updateOne(
+    const updated = await db.collection('leaderboard').findOneAndUpdate(
         {
             serverId: serverId,
             userId: userId
@@ -123,15 +136,14 @@ async function verifyString(message) {
             }
         },
         {
-            upsert: true
+            upsert: true,
+            ReturnDocument: 'after'
         }
     );
-
-    const userScore = await getScore(message);
     
-    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore[0]}.`);
+    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${updated.score + wordScore}.`);
 
-    await message.channel.send(`New word: ${await newAnagram(serverId)}`);
+    newAnagram(message);
 }
 
 function evalScore(word) {
@@ -211,14 +223,13 @@ async function showLeaderboard(message) {
     const serverId = message.guild.id;
     const leaderboard = await db.collection('leaderboard').find({ serverId: serverId }).sort({ score: -1 }).limit(10).toArray();
     const embed = new EmbedBuilder()
-        .setTitle("Anagrams Leaderboard")
+        .setTitle("Top 10 | Leaderboard")
         .setColor("#0099ff")
-        .setDescription("Top 10 players")
-        .setTimestamp()
+        .setDescription("5Heads on the server")
         .setFooter({ text: "Anagrams Game" });
 
     leaderboard.forEach((entry, index) => {
-        embed.addFields({ name: `${index + 1}. <@${entry.userId}>: ${entry.score}`, value: `` });
+        embed.addFields({ name: ``, value: `${index + 1}. <@!${entry.userId}>: ${entry.score}` });
     });
 
     await message.channel.send({ embeds: [embed] });
