@@ -141,7 +141,7 @@ async function verifyString(message) {
         }
     );
     const userScore = await getScore(message);
-    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
+    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore[0]}.`);
 
     newAnagram(message);
 }
