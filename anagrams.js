@@ -108,7 +108,7 @@ async function skip(message) {
     const serverId = message.guild.id;
     const result = await db.collection('anagrams').findOne({ serverId: serverId })
     await message.channel.send(`The word was: ${result.originalWord}`);
-    await new Promise(r => setTimeout(r, 5000));
+    await new Promise(r => setTimeout(r, 3000));
     newAnagram(message);
 }
 
@@ -142,7 +142,7 @@ async function verifyString(message) {
     );
     const userScore = await getScore(message);
     await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore[0]}.`);
-
+    await new Promise(r => setTimeout(r, 3000));
     newAnagram(message);
 }
 
