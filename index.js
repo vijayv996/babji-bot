@@ -18,7 +18,20 @@ client.on("ready", () => {
 
 client.login(process.env.DISCORD_TOKEN);
 
+client.on("interactionCreate", async (interaction) => { 
+    
+    if(!interaction.isCommand()) return;
+
+    const { commandName } = interaction;
+
+    if(commandName === "ping") {
+        await interaction.reply("Pong!");
+    }
+
+ });
+
 client.on("messageCreate", async (message) => {
+
     if(message.author.bot) {
         return;
     }
@@ -48,5 +61,6 @@ client.on("messageCreate", async (message) => {
         }
 
         verifyString(message);
+
     }
 });
