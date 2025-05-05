@@ -38,7 +38,7 @@ client.on("messageCreate", async (message) => {
             skip(message);
         }
 
-        if(message.content.startsWith(".lb")) {
+        if(message.content.startsWith(".top") || message.content.startsWith(".lb")) {
             showLeaderboard(message);
         }
 
