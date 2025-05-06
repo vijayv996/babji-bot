@@ -43,7 +43,8 @@ async function newAnagram(message) {
     const embed = new EmbedBuilder()
                 .setColor('#009933')
                 .setTitle(scrambled)
-                .setDescription('new anagram');
+                .setDescription('new anagram')
+                .setFooter({ text: ".hint for hints" });
             message.channel.send({ embeds: [embed] });
     console.log(word);
     console.log(scrambled);
