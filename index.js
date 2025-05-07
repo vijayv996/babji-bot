@@ -56,7 +56,7 @@ client.on("messageCreate", async (message) => {
         }
 
         if(message.content.startsWith(".score")) {
-            const values = await getScore(message);
+            const values = await getScore(message, false);
             message.reply(`Your score is ${values[0]} and your rank in the server is ${values[1]}`);
         }
 

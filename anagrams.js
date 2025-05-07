@@ -137,12 +137,11 @@ async function verifyString(message) {
             }
         },
         {
-            upsert: true,
-            ReturnDocument: 'after'
+            upsert: true
         }
     );
-    const userScore = await getScore(message);
-    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore[0]}.`);
+    const userScore = await getScore(message, true);
+    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
     await new Promise(r => setTimeout(r, 3000));
     newAnagram(message);
 }
@@ -207,11 +206,12 @@ function evalScore(word) {
     return (Math.round(finalScore * 10) / 10 | 0);
 }
 
-async function getScore(message) {
+async function getScore(message, onlyScore) {
     const serverId = message.guild.id;
     const userId = message.author.id;
     const doc = await db.collection('leaderboard').findOne({ serverId: serverId, userId: userId });
     const userScore = doc.score;
+    if(onlyScore) return userScore;
     const higherScores = await db.collection('leaderboard').countDocuments({ 
         serverId: serverId, 
         score: { $gt: userScore }
