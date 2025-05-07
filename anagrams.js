@@ -1,4 +1,4 @@
-import { MongoClient, ReturnDocument } from 'mongodb';
+import { MongoClient } from 'mongodb';
 import { EmbedBuilder  } from 'discord.js';
 const dbName = "anagramsDB";
 const client = new MongoClient("mongodb://localhost:27017");
