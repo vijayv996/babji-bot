@@ -59,50 +59,54 @@ function scramble(word) {
 }
 
 async function hint(message) {
+
     let serverId = message.guild.id;
     let doc = await db.collection('anagrams').findOne({ serverId: serverId });
+    
+    await db.collection('anagrams').updateOne(
+        { serverId: serverId },
+        {
+            $inc: {
+                hints: -1
+            }
+        }
+    )
+
+    if(doc.hints < 1) {
+        message.channel.send(':cry: No more hints avaliable');
+        return;
+    }
+
     let w = doc.originalWord;
-    let s = doc.scrambledWord;
-    if(doc.hints === 2) {
-        s = s.replace(w[0], "");
-        const embed = new EmbedBuilder()
-            .setColor('#0099ff')
-            .setDescription('**' + w[0] + '**' + s)
-            .setFooter({ text: "first letter hint" });
-        s = w[0] + s;
-        message.channel.send({ embeds: [embed] });
-        await db.collection('anagrams').updateOne(
-            { serverId: serverId },
-            {
-                $set: {
-                    scrambledWord: s
-                },
-                $inc: {
-                    hints: -1
-                }
-            }
-        )
-    }
+    let description, footer;
     if(doc.hints === 1) {
+        let def;
+        await fetch(`https://api.datamuse.com/words?sp=${w}&md=d&max=1`)
+            .then(response => response.json())
+            .then(data => def = data[0].defs);
+        description = def[0].replace(/n\t/,'');
+        footer = 'definition';
+    }
+
+    let s = doc.scrambledWord;
+    s = s.replace(w[0], "");
+    if(doc.hints === 3) {
+        description = '**' + w[0] + '**' + s;
+        footer = 'first letter hint';
+    }
+
+    if(doc.hints === 2) {
         s = s.replace(w[w.length - 1], "");
-        s = s + w[w.length - 1];
-        const embed = new EmbedBuilder()
-            .setColor('#0099ff')
-            .setDescription('**' + s[0] + '**' + s.slice(1, -1) + '**' + s[s.length - 1] + '**')
-            .setFooter({ text: "last letter hint" });
-        message.channel.send({ embeds: [embed]});
-        await db.collection('anagrams').updateOne(
-            { serverId: serverId },
-            {
-                $inc: {
-                    hints: -1
-                }
-            }
-        )
+        description = '**' + w[0] + '**' + s + '**' + w[w.length - 1] + '**';
+        footer = 'last letter hint';
     }
-    if(doc.hints === 0) {
-        message.channel.send(":cry: No more hints avaliable.");
-    }
+
+    const embed = new EmbedBuilder()
+        .setColor('#0099ff')
+        .setDescription(description)
+        .setFooter({ text: footer });
+    message.channel.send({ embeds: [embed] });
+    
 }
 
 async function skip(message) {
