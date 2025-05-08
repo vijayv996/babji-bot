@@ -103,6 +103,7 @@ async function hint(message) {
 
     const embed = new EmbedBuilder()
         .setColor('#0099ff')
+        .setTitle(doc.scrambledWord)
         .setDescription(description)
         .setFooter({ text: footer });
     message.channel.send({ embeds: [embed] });
