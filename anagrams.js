@@ -19,23 +19,23 @@ let db;
 })();
 
 async function newAnagram(message) {
+    const serverId = message.guild.id;
     let word;
-    let serverId = message.guild.id;
-    try {
-        let response = await fetch('https://random-word-api.vercel.app/api?words=1');
-        let data = await response.json();
-        word = data[0];
-    } catch (error) {
-        console.log("Error fetching word:", error);
-    }
+    await fetch('https://random-word-api.vercel.app/api?words=1')
+        .then(response => response.json())
+        .then(data => word = data[0]);
     
+    console.log(word);
+
     let scrambled = scramble(word);
+    await new Promise(r => setTimeout(r, 3000));
     await db.collection('anagrams').updateOne(
         { serverId: serverId },
         { $set: {
             originalWord: word,
             scrambledWord: scrambled,
-            hints: 2
+            hints: 3,
+            solved: false
         }},
         { upsert: true }
     )
@@ -45,9 +45,9 @@ async function newAnagram(message) {
                 .setTitle(scrambled)
                 .setDescription('new anagram')
                 .setFooter({ text: ".hint for hints" });
-            message.channel.send({ embeds: [embed] });
-    console.log(word);
-    console.log(scrambled);
+
+    message.channel.send({ embeds: [embed] });
+    
 }
 
 function scramble(word) {
@@ -114,10 +114,12 @@ async function skip(message) {
 }
 
 async function verifyString(message) {
-    const serverId = message.guild.id;
-    const userId = message.author.id;
+
     if(message.content.startsWith(".anagrams")) return;
 
+    const serverId = message.guild.id;
+    const userId = message.author.id;
+    
     const doc = await db.collection('anagrams').findOne({ serverId: serverId });
     const originalWord = doc.originalWord;
 
@@ -125,25 +127,41 @@ async function verifyString(message) {
         return;
     }
 
-    const wordScore = evalScore(originalWord);
-    await db.collection('leaderboard').findOneAndUpdate(
-        {
-            serverId: serverId,
-            userId: userId
-        },
-        {
-            $inc: {
-                score: wordScore
-            }
-        },
-        {
-            upsert: true
+    if(!doc.solved) {
+        await db.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solvedAt: message.createdTimestamp } } );
+    }
+
+    const temp = await db.collection('anagrams').findOne( { serverId: serverId } );
+    if(message.createdTimestamp - temp.solvedAt < 1000)  {
+
+        let wordScore = evalScore(originalWord);
+        if(doc.solved) {
+            wordScore = (wordScore / 3) * 2;
         }
-    );
-    const userScore = await getScore(message, true);
-    await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
-    await new Promise(r => setTimeout(r, 3000));
-    newAnagram(message);
+        
+        await db.collection('leaderboard').updateOne(
+            {
+                serverId: serverId,
+                userId: userId
+            },
+            {
+                $inc: {
+                    score: wordScore
+                }
+            },
+            {
+                upsert: true
+            }
+        );
+        await db.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solved: true } } );
+        const userScore = await getScore(message, true);
+        await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
+    }
+
+    if(!doc.solved) {
+        newAnagram(message);
+    }
+
 }
 
 function evalScore(word) {
