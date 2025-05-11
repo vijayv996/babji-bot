@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { dict } from './genaral-modules.js';
-import { newAnagram, verifyString, skip, hint, getScore, showLeaderboard } from './anagrams.js';
+import { newAnagram, verifyAnagram, skip, hint, anagramsScore, anagramsLeaderboard } from './anagrams.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 
 const client = new Client({
@@ -59,15 +59,15 @@ client.on("messageCreate", async (message) => {
         }
 
         if(message.content.startsWith(".top") || message.content.startsWith(".lb")) {
-            showLeaderboard(message);
+            anagramsLeaderboard(message);
         }
 
         if(message.content.startsWith(".score")) {
-            const values = await getScore(message, false);
+            const values = await anagramsScore(message, false);
             message.reply(`Your score is ${values[0]} and your rank in the server is ${values[1]}`);
         }
 
-        verifyString(message);
+        verifyAnagram(message);
 
     }
 });

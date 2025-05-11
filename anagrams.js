@@ -6,7 +6,7 @@ const client = new MongoClient("mongodb://localhost:27017");
 async function connectDB() {
     try {
         await client.connect();
-        console.log("Connected to database");
+        console.log("Connected to anagrams database");
         return client.db(dbName);
     } catch (error) {
         console.error("Error connecting to database:", error);
@@ -118,7 +118,7 @@ async function skip(message) {
     newAnagram(message);
 }
 
-async function verifyString(message) {
+async function verifyAnagram(message) {
 
     if(message.content.startsWith(".anagrams")) return;
 
@@ -229,7 +229,7 @@ function evalScore(word) {
     return (Math.round(finalScore * 10) / 10 | 0);
 }
 
-async function getScore(message, onlyScore) {
+async function anagramsScore(message, onlyScore) {
     const serverId = message.guild.id;
     const userId = message.author.id;
     const doc = await db.collection('leaderboard').findOne({ serverId: serverId, userId: userId });
@@ -243,7 +243,7 @@ async function getScore(message, onlyScore) {
     return [userScore, higherScores + 1];
 }
 
-async function showLeaderboard(message) {
+async function anagramsLeaderboard(message) {
     const serverId = message.guild.id;
     const leaderboard = await db.collection('leaderboard').find({ serverId: serverId }).sort({ score: -1 }).limit(10).toArray();
     const embed = new EmbedBuilder()
@@ -259,4 +259,4 @@ async function showLeaderboard(message) {
     await message.channel.send({ embeds: [embed] });
 }
 
-export { newAnagram, verifyString, skip, hint, getScore, showLeaderboard };
+export { newAnagram, verifyAnagram, skip, hint, anagramsScore, anagramsLeaderboard };
