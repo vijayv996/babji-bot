@@ -8,12 +8,14 @@ async function dict(message) {
         await message.reply("failed to get the definition. Check typos maybe");
         return;
     }
+    const definitions = data[0].defs
+        .map((def, i) => `${i + 1}. ${def.replace(/^[a-z]\t/, '')}`)
+        .join('\n');
     const embed = new EmbedBuilder()
         .setColor('#0099ff')
         .setTitle(data[0].word)
-    data[0].defs.forEach((element, index) => {
-        embed.addFields({ name: ``, value: `${index + 1}. ${element.replace(/n\t/, '')}` });
-    });
+        .setDescription(definitions);
+    
     await message.channel.send({ embeds: [embed] });
 }
 
