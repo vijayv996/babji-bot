@@ -76,9 +76,13 @@ async function hint(message) {
     let description, footer;
     if(doc.hints === 1) {
         let def;
-        await fetch(`https://api.datamuse.com/words?sp=${w}&md=d&max=1`)
-            .then(response => response.json())
-            .then(data => def = data[0].defs);
+        try {
+            await fetch(`https://api.datamuse.com/words?sp=${w}&md=d&max=1`)
+                .then(response => response.json())
+                .then(data => def = data[0].defs);
+        } catch {
+            console.log("something wrong");
+        }
         description = def[0].replace(/n\t/,'');
         footer = 'definition';
         timeoutId = setTimeout(async () => {
