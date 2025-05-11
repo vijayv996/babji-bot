@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { dict } from './genaral-modules.js';
-import { newAnagram, verifyAnagram, skip, hint, anagramsScore, anagramsLeaderboard } from './anagrams.js';
 import { Client, GatewayIntentBits } from 'discord.js';
+import { newAnagram, verifyAnagram, skip, hint, anagramsScore, anagramsLeaderboard } from './anagrams.js';
+import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './word-chain.js';
 
 const client = new Client({
     intents: [
@@ -43,31 +44,57 @@ client.on("messageCreate", async (message) => {
     }
 
     const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());
-
     if(anagramChannels.includes(message.channel.id)) {
         if(message.content.startsWith(".anagrams")) {
             message.channel.send("Anagrams game started! The anagram");
             newAnagram(message);
+            return;
         }
 
         if(message.content.startsWith(".hint")) {
             hint(message);
+            return;
         }
         
         if(message.content.startsWith(".skip")) {
             skip(message);
+            return;
         }
 
         if(message.content.startsWith(".top") || message.content.startsWith(".lb")) {
             anagramsLeaderboard(message);
+            return;
         }
 
         if(message.content.startsWith(".score")) {
             const values = await anagramsScore(message, false);
             message.reply(`Your score is ${values[0]} and your rank in the server is ${values[1]}`);
+            return;
         }
 
         verifyAnagram(message);
 
+    }
+
+    const wordChainChannels = process.env.WORDCHAIN_CHANNELS.split(',').map(channel => channel.trim());
+    if(wordChainChannels.includes(message.channel.id)) {
+        if(message.content.startsWith(".chain")) {
+            message.channel.send("Word Chain game started! The first letter is a");
+            newChain(message);
+            return;
+        }
+
+        if(message.content.startsWith('.score')) {
+            const values = await wordChainScore(message);
+            message.reply(`Your score is ${values[0]} and your rank in the server is ${values[1]}`);
+            return;
+        }
+
+        if(message.content.startsWith(".top") || message.content.startsWith(".lb")) {
+            wordChainLeaderboard(message);
+            return;
+        }
+
+        verifyChain(message);
     }
 });
