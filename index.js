@@ -45,19 +45,9 @@ client.on("messageCreate", async (message) => {
 
     const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());
     if(anagramChannels.includes(message.channel.id)) {
-        if(message.content.startsWith(".anagrams")) {
+        if(message.content.startsWith(".anagrams") && message.author.id == process.env.ADMIN_ID) {
             message.channel.send("Anagrams game started! The anagram");
             newAnagram(message);
-            return;
-        }
-
-        if(message.content.startsWith(".hint")) {
-            hint(message);
-            return;
-        }
-        
-        if(message.content.startsWith(".skip")) {
-            skip(message);
             return;
         }
 
