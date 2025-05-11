@@ -36,8 +36,7 @@ async function newAnagram(message) {
     const embed = new EmbedBuilder()
                 .setColor('#009933')
                 .setTitle(scrambled)
-                .setDescription('new anagram')
-                .setFooter({ text: ".hint for hints" });
+                .setDescription('new anagram');
 
     message.channel.send({ embeds: [embed] });
     timeoutId = setTimeout(async () => {
