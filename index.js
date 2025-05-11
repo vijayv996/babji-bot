@@ -79,7 +79,6 @@ client.on("messageCreate", async (message) => {
     const wordChainChannels = process.env.WORDCHAIN_CHANNELS.split(',').map(channel => channel.trim());
     if(wordChainChannels.includes(message.channel.id)) {
         if(message.content.startsWith(".chain")) {
-            message.channel.send("Word Chain game started! The first letter is a");
             newChain(message);
             return;
         }
