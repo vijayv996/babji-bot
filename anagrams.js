@@ -1,6 +1,8 @@
 import { connect, getDb, DB_NAMES } from './database.js';
 import { EmbedBuilder  } from 'discord.js';
 import { isValidWord } from './word-chain.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 (async () => {
     await connect();
@@ -8,7 +10,6 @@ import { isValidWord } from './word-chain.js';
 })();
 
 let timeoutId;
-
 const anagramsDB = getDb(DB_NAMES.ANAGRAMS);
 
 async function newAnagram(message) {
@@ -86,6 +87,10 @@ async function hint(message) {
                 .then(data => def = data[0].defs);
         } catch {
             console.log("something wrong");
+            timeoutId = setTimeout(async () => {
+                skip(message);
+            }, 60000);
+            return;
         }
         description = def[0].replace(/n\t/,'');
         footer = 'definition';
