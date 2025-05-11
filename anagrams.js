@@ -14,9 +14,13 @@ const anagramsDB = getDb(DB_NAMES.ANAGRAMS);
 async function newAnagram(message) {
     const serverId = message.guild.id;
     let word;
-    await fetch('https://random-word-api.vercel.app/api?words=1')
-        .then(response => response.json())
-        .then(data => word = data[0]);
+    try {
+        await fetch('https://random-word-api.vercel.app/api?words=1')
+            .then(response => response.json())
+            .then(data => word = data[0]);
+    } catch {
+        console.log("something wrong");
+    }
     
     console.log(word);
 
