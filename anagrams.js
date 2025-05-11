@@ -1,22 +1,13 @@
-import { MongoClient } from 'mongodb';
+import { connect, getDb, DB_NAMES } from './database.js';
 import { EmbedBuilder  } from 'discord.js';
-const dbName = "anagramsDB";
-const client = new MongoClient("mongodb://localhost:27017");
+import { isValidWord } from './word-chain.js';
 
-async function connectDB() {
-    try {
-        await client.connect();
-        console.log("Connected to anagrams database");
-        return client.db(dbName);
-    } catch (error) {
-        console.error("Error connecting to database:", error);
-    }
-}
-
-let db;
 (async () => {
-    db = await connectDB();
+    await connect();
+    console.log('Anagrams module ready');
 })();
+
+const anagramsDB = getDb(DB_NAMES.ANAGRAMS);
 
 async function newAnagram(message) {
     const serverId = message.guild.id;
@@ -29,7 +20,7 @@ async function newAnagram(message) {
 
     let scrambled = scramble(word);
     await new Promise(r => setTimeout(r, 3000));
-    await db.collection('anagrams').updateOne(
+    await anagramsDB.collection('anagrams').updateOne(
         { serverId: serverId },
         { $set: {
             originalWord: word,
@@ -61,9 +52,9 @@ function scramble(word) {
 async function hint(message) {
 
     let serverId = message.guild.id;
-    let doc = await db.collection('anagrams').findOne({ serverId: serverId });
+    let doc = await anagramsDB.collection('anagrams').findOne({ serverId: serverId });
     
-    await db.collection('anagrams').updateOne(
+    await anagramsDB.collection('anagrams').updateOne(
         { serverId: serverId },
         {
             $inc: {
@@ -112,7 +103,7 @@ async function hint(message) {
 
 async function skip(message) {
     const serverId = message.guild.id;
-    const result = await db.collection('anagrams').findOne({ serverId: serverId })
+    const result = await anagramsDB.collection('anagrams').findOne({ serverId: serverId })
     await message.channel.send(`The word was: ${result.originalWord}`);
     await new Promise(r => setTimeout(r, 3000));
     newAnagram(message);
@@ -123,16 +114,15 @@ async function verifyAnagram(message) {
     if(message.content.startsWith(".anagrams")) return;
 
     const serverId = message.guild.id;
-    const userId = message.author.id;
     
-    const doc = await db.collection('anagrams').findOne({ serverId: serverId });
+    const doc = await anagramsDB.collection('anagrams').findOne({ serverId: serverId });
     const originalWord = doc.originalWord;
     
     const userMessage = message.content.toLowerCase();
     if(!doc.solved && userMessage !== originalWord) {
         if(await isValidWord(userMessage)) {
             await message.reply(`You got 20 points for finding anagram but not exact answer. Think again`);
-            await updateLeaderBoard(30);
+            await updateLeaderBoard(message, 30);
         }
         return;
     }
@@ -142,10 +132,10 @@ async function verifyAnagram(message) {
     }
 
     if(!doc.solved) {
-        await db.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solvedAt: message.createdTimestamp } } );
+        await anagramsDB.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solvedAt: message.createdTimestamp } } );
     }
 
-    const temp = await db.collection('anagrams').findOne( { serverId: serverId } );
+    const temp = await anagramsDB.collection('anagrams').findOne( { serverId: serverId } );
     if(message.createdTimestamp - temp.solvedAt < 1000)  {
 
         let wordScore = evalScore(originalWord);
@@ -153,9 +143,9 @@ async function verifyAnagram(message) {
             wordScore = (wordScore / 3) * 2;
         }
         
-        await updateLeaderBoard(wordScore);
-        await db.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solved: true } } );
-        const userScore = await getScore(message, true);
+        await updateLeaderBoard(message, wordScore);
+        await anagramsDB.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solved: true } } );
+        const userScore = await anagramsScore(message, true);
         await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
     }
 
@@ -228,10 +218,10 @@ function evalScore(word) {
 async function anagramsScore(message, onlyScore) {
     const serverId = message.guild.id;
     const userId = message.author.id;
-    const doc = await db.collection('leaderboard').findOne({ serverId: serverId, userId: userId });
+    const doc = await anagramsDB.collection('leaderboard').findOne({ serverId: serverId, userId: userId });
     const userScore = doc.score;
     if(onlyScore) return userScore;
-    const higherScores = await db.collection('leaderboard').countDocuments({ 
+    const higherScores = await anagramsDB.collection('leaderboard').countDocuments({ 
         serverId: serverId, 
         score: { $gt: userScore }
     });
@@ -239,11 +229,11 @@ async function anagramsScore(message, onlyScore) {
     return [userScore, higherScores + 1];
 }
 
-async function updateLeaderBoard(wordScore) {
-    await db.collection('leaderboard').updateOne(
+async function updateLeaderBoard(message, wordScore) {
+    await anagramsDB.collection('leaderboard').updateOne(
         {
-            serverId: serverId,
-            userId: userId
+            serverId: message.guild.id,
+            userId: message.author.id
         },
         {
             $inc: {
@@ -258,7 +248,7 @@ async function updateLeaderBoard(wordScore) {
 
 async function anagramsLeaderboard(message) {
     const serverId = message.guild.id;
-    const leaderboard = await db.collection('leaderboard').find({ serverId: serverId }).sort({ score: -1 }).limit(10).toArray();
+    const leaderboard = await anagramsDB.collection('leaderboard').find({ serverId: serverId }).sort({ score: -1 }).limit(10).toArray();
     const embed = new EmbedBuilder()
         .setTitle("Top 10 | Leaderboard")
         .setColor("#0099ff")
