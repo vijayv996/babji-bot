@@ -50,28 +50,27 @@ async function verifyChain(message) {
         return;
     }
 
-    if(!await wordChainDB.collection('wordChainWords').findOne({ serverId: serverId, word: msg })) {
+    
+    if(await wordChainDB.collection('wordChainWords').findOne({ serverId: serverId, word: msg })) {
         message.react('❌');
         message.reply("word already used");
         return;
     }
-
-    if(!await isValidWord(msg)) {
+    
+    if (!(await isValidWord(msg))) {
         message.react('❌');
         message.reply("word doesn't exist");
         return;
     }
 
-    let wordScore = evalScore(msg); 
-    let react;
+    let wordScore = await evalScore(msg); 
     if(wordScore == 4) {
-        react = '4️⃣';
+        message.react('4️⃣');
     } else if(wordScore == 6) {
-        react = '6️⃣';
+        message.react('6️⃣');
     } else if(wordScore == 8) {
-        react = '8️⃣';
+        message.react('8️⃣');
     }
-    message.react(react);
     
     await wordChainDB.collection('wordChain').updateOne(
         { serverId: serverId },
@@ -117,10 +116,13 @@ async function evalScore(word) {
 async function isValidWord(word) {
 
     let word1;
-    await fetch(`https://api.datamuse.com/words?sp=${word}&max=1`)
-        .then(response => response.json())
-        .then(data => word1 = data[0].word);
-
+    try {
+        await fetch(`https://api.datamuse.com/words?sp=${word}&max=1`)
+            .then(response => response.json())
+            .then(data => word1 = data[0].word);
+    } catch {
+        return false;
+    }
     return word1 === word;
 
 }
