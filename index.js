@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { dict } from './genaralModules.js';
+import { dict } from './genaral-modules.js';
 import { newAnagram, verifyString, skip, hint, getScore, showLeaderboard } from './anagrams.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 
