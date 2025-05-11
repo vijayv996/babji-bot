@@ -127,8 +127,17 @@ async function verifyAnagram(message) {
     
     const doc = await db.collection('anagrams').findOne({ serverId: serverId });
     const originalWord = doc.originalWord;
+    
+    const userMessage = message.content.toLowerCase();
+    if(!doc.solved && userMessage !== originalWord) {
+        if(await isValidWord(userMessage)) {
+            await message.reply(`You got 20 points for finding anagram but not exact answer. Think again`);
+            await updateLeaderBoard(30);
+        }
+        return;
+    }
 
-    if(originalWord !== message.content.toLowerCase()) {
+    if(originalWord !== userMessage) {
         return;
     }
 
@@ -144,20 +153,7 @@ async function verifyAnagram(message) {
             wordScore = (wordScore / 3) * 2;
         }
         
-        await db.collection('leaderboard').updateOne(
-            {
-                serverId: serverId,
-                userId: userId
-            },
-            {
-                $inc: {
-                    score: wordScore
-                }
-            },
-            {
-                upsert: true
-            }
-        );
+        await updateLeaderBoard(wordScore);
         await db.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solved: true } } );
         const userScore = await getScore(message, true);
         await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
@@ -241,6 +237,23 @@ async function anagramsScore(message, onlyScore) {
     });
 
     return [userScore, higherScores + 1];
+}
+
+async function updateLeaderBoard(wordScore) {
+    await db.collection('leaderboard').updateOne(
+        {
+            serverId: serverId,
+            userId: userId
+        },
+        {
+            $inc: {
+                score: wordScore
+            }
+        },
+        {
+            upsert: true
+        }
+    );
 }
 
 async function anagramsLeaderboard(message) {
