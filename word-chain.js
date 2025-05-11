@@ -1,26 +1,17 @@
-import { MongoClient } from 'mongodb';
 import { EmbedBuilder } from 'discord.js';
-const dbName = "wordChainDB";
-const client = new MongoClient("mongodb://localhost:27017");
+import { connect, getDb, DB_NAMES } from './database.js';
 
-async function connectDB() {
-    try {
-        await client.connect();
-        console.log("Connected to WordChain database");
-        return client.db(dbName);
-    } catch (error) {
-        console.error("Error connecting to database:", error);
-    }
-}
-
-let db;
 (async () => {
-    db = await connectDB();
-})
+    await connect();
+    console.log("word chain module ready");
+})();
 
-async function newChain() {
-    await db.collection('wordChain').updateOne(
-        { serverId: serverId },
+const wordChainDB = getDb(DB_NAMES.WORD_CHAIN);
+
+async function newChain(message) {
+
+    await wordChainDB.collection('wordChain').updateOne(
+        { serverId: message.guild.id },
         {
             $set: {
                 lastLetter: 'a',
@@ -29,6 +20,8 @@ async function newChain() {
         },
         { upsert: true }
     )
+    message.channel.send("Word Chain game started! The first letter is **a**");
+
 }
 
 async function verifyChain(message) {
@@ -37,14 +30,14 @@ async function verifyChain(message) {
         return;
     }
 
-    if(message.connect.split(' ').length > 1) {
+    if(message.content.split(' ').length > 1) {
         return;
     }
 
     const serverId = message.guild.id;
     const msg = message.content.toLowerCase();
 
-    const doc = await db.collection('wordChain').findOne({ serverId: serverId });
+    const doc = await wordChainDB.collection('wordChain').findOne({ serverId: serverId });
     if(doc.lastUser === message.author.id) {
         message.reply("It's not your turn. 2 points deducted");
         await updateWordChainLeaderboard(message, -2);
@@ -57,15 +50,15 @@ async function verifyChain(message) {
         return;
     }
 
-    if(!await db.collection('wordChainWords').findOne({ serverId: serverId, word: msg })) {
+    if(!await wordChainDB.collection('wordChainWords').findOne({ serverId: serverId, word: msg })) {
         message.react('❌');
-        message.channel.reply("word already used");
+        message.reply("word already used");
         return;
     }
 
     if(!await isValidWord(msg)) {
         message.react('❌');
-        message.channel.reply("word doesn't exist");
+        message.reply("word doesn't exist");
         return;
     }
 
@@ -80,7 +73,7 @@ async function verifyChain(message) {
     }
     message.react(react);
     
-    await db.collection('wordChain').updateOne(
+    await wordChainDB.collection('wordChain').updateOne(
         { serverId: serverId },
         {
             $set: {
@@ -91,7 +84,7 @@ async function verifyChain(message) {
         { upsert: true }
     )
 
-    await db.collection('wordChainWords').updateOne(
+    await wordChainDB.collection('wordChainWords').updateOne(
         { serverId: serverId, word: msg },
         {
             $set: {
@@ -134,7 +127,7 @@ async function isValidWord(word) {
 
 async function updateWordChainLeaderboard(message, wordScore) {
 
-    await db.collection('leaderboard').updateOne(
+    await wordChainDB.collection('leaderboard').updateOne(
         {
             serverId: message.guild.id,
             userId: message.author.id
@@ -154,7 +147,7 @@ async function wordChainScore(message) {
     const serverId = message.guild.id;
     const userId = message.author.id;
     const userScore = doc.score;
-    const higherScores = await db.collection('leaderboard').countDocuments({ 
+    const higherScores = await wordChainDB.collection('leaderboard').countDocuments({ 
         serverId: serverId, 
         score: { $gt: userScore }
     });
@@ -166,7 +159,7 @@ async function wordChainScore(message) {
 async function wordChainLeaderboard(message) {
 
     const serverId = message.guild.id;
-    const leaderboard = await db.collection('leaderboard').find({ serverId: serverId }).sort({ score: -1 }).limit(10).toArray();
+    const leaderboard = await wordChainDB.collection('leaderboard').find({ serverId: serverId }).sort({ score: -1 }).limit(10).toArray();
     const embed = new EmbedBuilder()
         .setTitle("Top 10 | Leaderboard")
         .setColor("#0099ff")
