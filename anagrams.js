@@ -85,6 +85,7 @@ async function hint(message) {
             await fetch(`https://api.datamuse.com/words?sp=${w}&md=d&max=1`)
                 .then(response => response.json())
                 .then(data => def = data[0].defs);
+            console.log('defs', def);
         } catch {
             console.log("something wrong");
             timeoutId = setTimeout(async () => {
