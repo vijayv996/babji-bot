@@ -7,6 +7,8 @@ import { isValidWord } from './word-chain.js';
     console.log('Anagrams module ready');
 })();
 
+let timeoutId;
+
 const anagramsDB = getDb(DB_NAMES.ANAGRAMS);
 
 async function newAnagram(message) {
@@ -38,7 +40,14 @@ async function newAnagram(message) {
                 .setFooter({ text: ".hint for hints" });
 
     message.channel.send({ embeds: [embed] });
+    timeoutId = setTimeout(async () => {
+        hint(message);
+    }, 60000);
     
+}
+
+const cancelTimeout = async () => {
+    clearTimeout(timeoutId);
 }
 
 function scramble(word) {
@@ -63,10 +72,6 @@ async function hint(message) {
         }
     )
 
-    if(doc.hints < 1) {
-        message.channel.send(':cry: No more hints avaliable');
-        return;
-    }
 
     let w = doc.originalWord;
     let description, footer;
@@ -77,6 +82,9 @@ async function hint(message) {
             .then(data => def = data[0].defs);
         description = def[0].replace(/n\t/,'');
         footer = 'definition';
+        timeoutId = setTimeout(async () => {
+            skip(message);
+        }, 60000);
     }
 
     let s = doc.scrambledWord;
@@ -84,12 +92,18 @@ async function hint(message) {
     if(doc.hints === 3) {
         description = '**' + w[0] + '**' + s;
         footer = 'first letter hint';
+        timeoutId = setTimeout(async () => {
+            hint(message);
+        }, 60000);
     }
 
     if(doc.hints === 2) {
         s = s.replace(w[w.length - 1], "");
         description = '**' + w[0] + '**' + s + '**' + w[w.length - 1] + '**';
         footer = 'last letter hint';
+        timeoutId = setTimeout(async () => {
+            hint(message);
+        }, 60000);
     }
 
     const embed = new EmbedBuilder()
@@ -104,7 +118,7 @@ async function hint(message) {
 async function skip(message) {
     const serverId = message.guild.id;
     const result = await anagramsDB.collection('anagrams').findOne({ serverId: serverId })
-    await message.channel.send(`The word was: ${result.originalWord}`);
+    await message.channel.send(`:hourglass: Time's up! The word was: ${result.originalWord}`);
     await new Promise(r => setTimeout(r, 3000));
     newAnagram(message);
 }
@@ -132,6 +146,7 @@ async function verifyAnagram(message) {
     }
 
     if(!doc.solved) {
+        cancelTimeout();
         await anagramsDB.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solvedAt: message.createdTimestamp } } );
     }
 
