@@ -146,7 +146,7 @@ async function verifyAnagram(message) {
     const originalWord = doc.originalWord;
     
     const userMessage = message.content.toLowerCase();
-    if(!doc.solved && userMessage !== originalWord) {
+    if(!doc.solved && userMessage !== originalWord && isValidAnagram(userMessage, originalWord)) {
         if(await isValidWord(userMessage)) {
             await message.reply(`You got 20 points for finding anagram but not exact answer. Think again`);
             await updateLeaderBoard(message, 30);
@@ -181,6 +181,12 @@ async function verifyAnagram(message) {
         newAnagram(message);
     }
 
+}
+
+function isValidAnagram(userMessage, originalWord) {
+    const sortedUsr = userMessage.split('').sort().join('');
+    const sortedog = originalWord.split('').sort().join('');
+    return sortedUsr === sortedog;
 }
 
 function evalScore(word) {
