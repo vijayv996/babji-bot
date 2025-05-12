@@ -115,6 +115,14 @@ async function hint(message) {
     if(doc.hints === 2) {
         s = s.replace(w[w.length - 1], "");
         description = '**' + w[0] + '**' + s + '**' + w[w.length - 1] + '**';
+        await anagramsDB.collection('anagrams').updateOne(
+            { serverId: serverId },
+            {
+                $set: {
+                    scrambledWord: description
+                }
+            }
+        )
         footer = 'last letter hint';
         timeoutId = setTimeout(async () => {
             hint(message);
