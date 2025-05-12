@@ -21,6 +21,8 @@ async function newAnagram(message) {
             .then(data => word = data[0]);
     } catch {
         console.log("something wrong");
+        newAnagram(message);
+        return;
     }
     
     console.log(word);
