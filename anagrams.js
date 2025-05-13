@@ -178,7 +178,7 @@ async function verifyAnagram(message) {
 
         let wordScore = evalScore(originalWord);
         if(doc.solved) {
-            wordScore = (wordScore / 3) * 2;
+            wordScore = Math.round((wordScore / 3) * 2);
         }
         
         await updateLeaderBoard(message, wordScore);
