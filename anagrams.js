@@ -158,7 +158,7 @@ async function verifyAnagram(message) {
     const userMessage = message.content.toLowerCase();
     if(!doc.solved && userMessage !== originalWord && isValidAnagram(userMessage, originalWord)) {
         if(await isValidWord(userMessage)) {
-            await message.reply(`You got 20 points for finding anagram but not exact answer. Think again`);
+            await message.reply(`You got 30 points for finding anagram but not exact answer. Think again`);
             await updateLeaderBoard(message, 30);
         }
         return;
