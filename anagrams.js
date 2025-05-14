@@ -140,7 +140,14 @@ async function hint(message) {
 
 async function skip(message) {
     const serverId = message.guild.id;
-    const result = await anagramsDB.collection('anagrams').findOne({ serverId: serverId })
+    const result = await anagramsDB.collection('anagrams').findOneAndUpdate(
+        { serverId: serverId },
+        {
+            $set: {
+                solved: true
+            }
+        }
+    )
     await message.channel.send(`:hourglass: Time's up! The word was: ${result.originalWord}`);
     await new Promise(r => setTimeout(r, 3000));
     newAnagram(message);
