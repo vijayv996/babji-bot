@@ -9,7 +9,7 @@ dotenv.config();
     console.log('Anagrams module ready');
 })();
 
-let timeoutId;
+const timeoutMap = new Map();
 const anagramsDB = getDb(DB_NAMES.ANAGRAMS);
 
 async function newAnagram(message) {
@@ -46,14 +46,19 @@ async function newAnagram(message) {
                 .setDescription('new anagram');
 
     message.channel.send({ embeds: [embed] });
-    timeoutId = setTimeout(async () => {
+
+    cancelTimeout(serverId);
+    timeoutMap.set(serverId, setTimeout(async () => {
         hint(message);
-    }, 60000);
+    }, 60000));
     
 }
 
-const cancelTimeout = async () => {
-    clearTimeout(timeoutId);
+const cancelTimeout = async (serverId) => {
+    if(timeoutMap.has(serverId)) {
+        clearTimeout(timeoutMap.get(serverId));
+        timeoutMap.delete(serverId);
+    }
 }
 
 function scramble(word) {
@@ -78,7 +83,6 @@ async function hint(message) {
         }
     )
 
-
     let w = doc.originalWord;
     let description, footer;
     if(doc.hints === 1) {
@@ -89,17 +93,15 @@ async function hint(message) {
                 .then(data => def = data[0].defs);
             console.log('defs', def);
         } catch {
-            console.log("something wrong");
-            timeoutId = setTimeout(async () => {
-                skip(message);
-            }, 60000);
+            console.log("defs request failed");
+            skip(message);
             return;
         }
         description = def[0].replace(/n\t/,'');
         footer = 'definition';
-        timeoutId = setTimeout(async () => {
+        timeoutMap.set(serverId, setTimeout(async () => {
             skip(message);
-        }, 60000);
+        }, 60000));
     }
 
     let s = doc.scrambledWord;
@@ -107,9 +109,9 @@ async function hint(message) {
     if(doc.hints === 3) {
         description = '**' + w[0] + '**' + s;
         footer = 'first letter hint';
-        timeoutId = setTimeout(async () => {
+        timeoutMap.set(serverId, setTimeout(async () => {
             hint(message);
-        }, 60000);
+        }, 60000));
     }
 
     if(doc.hints === 2) {
@@ -124,9 +126,9 @@ async function hint(message) {
             }
         )
         footer = 'last letter hint';
-        timeoutId = setTimeout(async () => {
+        timeoutMap.set(serverId, setTimeout(async () => {
             hint(message);
-        }, 60000);
+        }, 60000));
     }
 
     const embed = new EmbedBuilder()
@@ -154,7 +156,6 @@ async function skip(message) {
 }
 
 async function verifyAnagram(message) {
-
     if(message.content.startsWith(".anagrams")) return;
 
     const serverId = message.guild.id;
@@ -176,7 +177,7 @@ async function verifyAnagram(message) {
     }
 
     if(!doc.solved) {
-        cancelTimeout();
+        cancelTimeout(serverId);
         await anagramsDB.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solvedAt: message.createdTimestamp } } );
     }
 
