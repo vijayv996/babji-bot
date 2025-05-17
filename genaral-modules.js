@@ -19,4 +19,6 @@ async function dict(message) {
     await message.channel.send({ embeds: [embed] });
 }
 
+async function googleImage(message) {}
+
 export { dict };
