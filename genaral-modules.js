@@ -21,4 +21,6 @@ async function dict(message) {
 
 async function googleImage(message) {}
 
+async function ytdlp(message) {}
+
 export { dict };
