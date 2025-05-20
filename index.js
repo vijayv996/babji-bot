@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { dict } from './genaral-modules.js';
+import { dict, googleImage } from './genaral-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
-import { newAnagram, verifyAnagram, skip, hint, anagramsScore, anagramsLeaderboard } from './anagrams.js';
+import { newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './word-chain.js';
 
 const client = new Client({
@@ -41,6 +41,10 @@ client.on("messageCreate", async (message) => {
     if(message.content.startsWith(".dict")) {
         dict(message);
         return;
+    }
+
+    if(message.content.startsWith(".img")) {
+        googleImage(message);
     }
 
     const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());
