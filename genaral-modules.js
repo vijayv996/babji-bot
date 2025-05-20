@@ -1,4 +1,5 @@
 import { EmbedBuilder } from 'discord.js';
+import exec from 'child_process';
 
 async function dict(message) {
     const word = message.content.split(' ')[1].toLowerCase();
@@ -19,8 +20,21 @@ async function dict(message) {
     await message.channel.send({ embeds: [embed] });
 }
 
-async function googleImage(message) {}
+// async function googleImage(message) {}
 
-async function ytdlp(message) {}
+async function instaVid(message, filepath) {
+    const url = message.content.split(' ')[1];
+    filepath += `${url.split("/")[4]}.mp4`;
+    exec(`yt-dlp ${url}  -o ${filepath}`, (err, output) => {
+        if(err) {
+            console.log("download failed", err);
+            message.reply("download failed :cry:");
+            return;
+        }
+        console.log(output);
+    });
+    message.reply("test", { files: [filepath] });
+}
+
 
 export { dict };
