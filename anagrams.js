@@ -314,4 +314,4 @@ async function anagramsLeaderboard(message) {
     await message.channel.send({ embeds: [embed] });
 }
 
-export { newAnagram, verifyAnagram, skip, hint, anagramsScore, anagramsLeaderboard };
+export { newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard };
