@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { dict, googleImage } from './genaral-modules.js';
+import { dict, instaVid } from './genaral-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './word-chain.js';
@@ -45,6 +45,10 @@ client.on("messageCreate", async (message) => {
 
     if(message.content.startsWith(".img")) {
         googleImage(message);
+    }
+
+    if(message.content.startsWith(".instadl")) {
+        instaVid(message);
     }
 
     const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());

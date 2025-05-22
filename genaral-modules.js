@@ -1,5 +1,6 @@
-import { EmbedBuilder } from 'discord.js';
-import exec from 'child_process';
+import { Attachment, EmbedBuilder } from 'discord.js';
+import { YtDlp } from 'ytdlp-nodejs';
+const ytdlp = new YtDlp();
 
 async function dict(message) {
     const word = message.content.split(' ')[1].toLowerCase();
@@ -22,19 +23,46 @@ async function dict(message) {
 
 // async function googleImage(message) {}
 
-async function instaVid(message, filepath) {
-    const url = message.content.split(' ')[1];
-    filepath += `${url.split("/")[4]}.mp4`;
-    exec(`yt-dlp ${url}  -o ${filepath}`, (err, output) => {
-        if(err) {
-            console.log("download failed", err);
-            message.reply("download failed :cry:");
-            return;
-        }
-        console.log(output);
-    });
-    message.reply("test", { files: [filepath] });
+// async function instaVid(message, filepath) {
+//     const url = message.content.split(' ')[1];
+//     filepath += `${url.split("/")[4]}.mp4`;
+//     exec(`yt-dlp ${url}  -o ${filepath}`, (err, output) => {
+//         if(err) {
+//             console.log("download failed", err);
+//             message.reply("download failed :cry:");
+//             return;
+//         }
+//         console.log(output);
+//     });
+//     message.reply("test", { files: [filepath] });
+// }
+
+async function instaVid(message) {
+    const url = message.content.split(" ")[1];
+    const id = url.split("/")[4];
+    try {
+        const file = await ytdlp.getFileAsync(
+            `${url}`,
+            {
+                filename: `${id}.mp4`,
+                onProgress: (progress) => {
+                    console.log(progress);
+                },
+            }
+        );
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        console.log(file);
+        await message.reply({
+            content: "vid",
+            files: [{
+                attachment: buffer,
+                name: `${id}.mp4`
+            }]
+        });
+        } catch (error) {
+        console.error('Error:', error);
+    }
 }
 
-
-export { dict };
+export { dict, instaVid };
