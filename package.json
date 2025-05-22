@@ -1,7 +1,7 @@
 {
   "name": "charizard-bot",
   "version": "1.0.0",
-  "type": "module",	
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -21,6 +21,7 @@
   "dependencies": {
     "discord.js": "^14.19.2",
     "dotenv": "^16.5.0",
-    "mongoose": "^8.14.1"
+    "mongoose": "^8.14.1",
+    "ytdlp-nodejs": "^2.1.0"
   }
 }
