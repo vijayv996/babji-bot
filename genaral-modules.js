@@ -1,6 +1,6 @@
 import { Attachment, EmbedBuilder } from 'discord.js';
 import { YtDlp } from 'ytdlp-nodejs';
-const ytdlp = new YtDlp();
+// const ytdlp = new YtDlp();
 
 async function dict(message) {
     const word = message.content.split(' ')[1].toLowerCase();
@@ -38,6 +38,7 @@ async function dict(message) {
 // }
 
 async function instaVid(message) {
+    const ytdlp = new YtDlp(); // here temporarily because its not used much
     const url = message.content.split(" ")[1];
     const id = url.split("/")[4];
     try {
