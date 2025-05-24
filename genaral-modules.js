@@ -1,6 +1,6 @@
 import { Attachment, EmbedBuilder } from 'discord.js';
 import { YtDlp } from 'ytdlp-nodejs';
-// const ytdlp = new YtDlp();
+const ytdlp = new YtDlp();
 
 async function dict(message) {
     const word = message.content.split(' ')[1].toLowerCase();
@@ -37,33 +37,42 @@ async function dict(message) {
 //     message.reply("test", { files: [filepath] });
 // }
 
-async function instaVid(message) {
-    const ytdlp = new YtDlp(); // here temporarily because its not used much
+// async function instaVid(message) {
+//     // const ytdlp = new YtDlp(); // here temporarily because its not used much
+//     const url = message.content.split(" ")[1];
+//     const id = url.split("/")[4];
+//     try {
+//         const file = await ytdlp.getFileAsync(
+//             `${url}`,
+//             {
+//                 filename: `${id}.mp4`,
+//                 onProgress: (progress) => {
+//                     console.log(progress);
+//                 },
+//             }
+//         );
+//         const arrayBuffer = await file.arrayBuffer();
+//         const buffer = Buffer.from(arrayBuffer);
+//         console.log(file);
+//         await message.reply({
+//             content: "vid",
+//             files: [{
+//                 attachment: buffer,
+//                 name: `${id}.mp4`
+//             }]
+//         });
+//         } catch (error) {
+//         console.error('Error:', error);
+//     }
+// }
+
+async function streamMusic(message) {
     const url = message.content.split(" ")[1];
-    const id = url.split("/")[4];
-    try {
-        const file = await ytdlp.getFileAsync(
-            `${url}`,
-            {
-                filename: `${id}.mp4`,
-                onProgress: (progress) => {
-                    console.log(progress);
-                },
-            }
-        );
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        console.log(file);
-        await message.reply({
-            content: "vid",
-            files: [{
-                attachment: buffer,
-                name: `${id}.mp4`
-            }]
-        });
-        } catch (error) {
-        console.error('Error:', error);
-    }
+    const stream = ytdlp.stream(url, {
+        format: {
+            filter: 'audioonly',
+        }
+    });
 }
 
 export { dict, instaVid };
