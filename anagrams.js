@@ -301,15 +301,16 @@ async function updateLeaderBoard(message, wordScore) {
 async function anagramsLeaderboard(message) {
     const serverId = message.guild.id;
     const leaderboard = await anagramsDB.collection('leaderboard').find({ serverId: serverId }).sort({ score: -1 }).limit(10).toArray();
+    let description = "5Heads on the server:\n\n";
+    leaderboard.forEach((entry, index) => {
+        description += `${index + 1}. <@!${entry.userId}>: ${entry.score}\n`;
+    });
+
     const embed = new EmbedBuilder()
         .setTitle("Top 10 | Leaderboard")
         .setColor("#0099ff")
-        .setDescription("5Heads on the server")
+        .setDescription(description)
         .setFooter({ text: "Anagrams Game" });
-
-    leaderboard.forEach((entry, index) => {
-        embed.addFields({ name: ``, value: `${index + 1}. <@!${entry.userId}>: ${entry.score}` });
-    });
 
     await message.channel.send({ embeds: [embed] });
 }
