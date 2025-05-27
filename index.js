@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { dict, instaVid } from './genaral-modules.js';
+import { dict } from './genaral-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './word-chain.js';
@@ -47,10 +47,15 @@ client.on("messageCreate", async (message) => {
         googleImage(message);
     }
 
-    if(message.content.startsWith(".instadl")) {
-        instaVid(message);
-    }
+    // if(message.content.startsWith(".instadl")) {
+    //     instaVid(message);
+    // }
 
+    if (message.content === '.ping') {  
+        // message.channel.send(`Overall Latency is ${Date.now() - message.createdTimestamp}ms.`);
+        message.channel.send(`🏓 API Latency is ${client.ws.ping}ms`);
+    }
+    
     const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());
     if(anagramChannels.includes(message.channel.id)) {
         if(message.content.startsWith(".anagrams") && message.author.id == process.env.ADMIN_ID) {
