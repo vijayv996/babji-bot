@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { dict } from './genaral-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
-import { newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './anagrams.js';
+import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './word-chain.js';
 
 const client = new Client({
@@ -16,6 +16,7 @@ const client = new Client({
 
 client.on("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
+    loadCsv(process.env.CSV_PATH);
 });
 
 client.login(process.env.DISCORD_TOKEN);

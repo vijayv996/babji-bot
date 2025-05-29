@@ -1,5 +1,7 @@
 import { connect, getDb, DB_NAMES } from './database.js';
 import { EmbedBuilder  } from 'discord.js';
+import { readFile } from 'fs/promises';
+import { parse } from 'csv-parse/sync';
 import { isValidWord } from './word-chain.js';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -9,31 +11,36 @@ dotenv.config();
     console.log('Anagrams module ready');
 })();
 
+let csvInMemory = null;
 const timeoutMap = new Map();
 const anagramsDB = getDb(DB_NAMES.ANAGRAMS);
 
+async function loadCsv(filepath) {
+    try {
+        const content = await readFile(filepath);
+        csvInMemory = parse(content, { columns: true });
+        console.log("loaded csv into memory");
+    } catch (error) {
+        console.error(error);
+        csvInMemory = null;
+    }
+}
+
 async function newAnagram(message) {
     const serverId = message.guild.id;
-    let word;
-    try {
-        await fetch('https://random-word-api.vercel.app/api?words=1')
-            .then(response => response.json())
-            .then(data => word = data[0]);
-    } catch {
-        console.log("something wrong");
-        newAnagram(message);
-        return;
-    }
-    
-    console.log(word);
+    if(!csvInMemory) return;
+    const row = csvInMemory[Math.floor(Math.random() * csvInMemory.length)];
+    console.log(row);
 
-    let scrambled = scramble(word);
+    let scrambled = scramble(row.Word);
     await new Promise(r => setTimeout(r, 3000));
     await anagramsDB.collection('anagrams').updateOne(
         { serverId: serverId },
         { $set: {
-            originalWord: word,
+            originalWord: row.Word,
             scrambledWord: scrambled,
+            score: Number(row.Score),
+            gloss: row.Gloss,
             hints: 3,
             solved: false
         }},
@@ -86,22 +93,11 @@ async function hint(message) {
     let w = doc.originalWord;
     let description, footer;
     if(doc.hints === 1) {
-        let def;
-        try {
-            await fetch(`https://api.datamuse.com/words?sp=${w}&md=d&max=1`)
-                .then(response => response.json())
-                .then(data => def = data[0].defs);
-            console.log('defs', def);
-        } catch {
-            console.log("defs request failed");
-            skip(message);
-            return;
-        }
-        description = def[0].replace(/n\t/,'');
+        description = doc.Gloss
         footer = 'definition';
         timeoutMap.set(serverId, setTimeout(async () => {
             skip(message);
-        }, 60000));
+        }, 30000));
     }
 
     let s = doc.scrambledWord;
@@ -184,7 +180,7 @@ async function verifyAnagram(message) {
     const temp = await anagramsDB.collection('anagrams').findOne( { serverId: serverId } );
     if(message.createdTimestamp - temp.solvedAt < 1000)  {
 
-        let wordScore = evalScore(originalWord);
+        let wordScore = doc.score;
         if(doc.solved) {
             wordScore = Math.round((wordScore / 3) * 2);
         }
@@ -207,65 +203,6 @@ function isValidAnagram(userMessage, originalWord) {
     return sortedUsr === sortedog;
 }
 
-function evalScore(word) {
-
-    if (!word) return 0;
-
-    // 1. Score based on length
-    const lengthScore = word.length * 10;
-
-    // 2. Letter frequency in English (rarer letters give higher scores)
-    const letterFrequency = {
-        e: 12.0, t: 9.1, a: 8.1, o: 7.7, i: 7.0, n: 6.7, s: 6.3, 
-        h: 6.1, r: 6.0, d: 4.3, l: 4.0, u: 2.8, c: 2.8, m: 2.4, 
-        w: 2.4, f: 2.2, g: 2.0, y: 2.0, p: 1.9, b: 1.5, v: 0.98, 
-        k: 0.77, j: 0.15, x: 0.15, q: 0.095, z: 0.074
-    };
-
-    let difficultyScore = 0;
-    const uniqueLetters = new Set(word);
-
-    for (let letter of uniqueLetters) {
-        if (letterFrequency.hasOwnProperty(letter)) {
-            difficultyScore += (13 - Math.min(13, letterFrequency[letter]));
-        } else {
-            difficultyScore += 5; // For non-alphabetic characters or unknown letters
-        }
-    }
-
-    // 3. Consider letter repetitions
-    const letterCounts = {};
-    for (let letter of word) {
-        letterCounts[letter] = (letterCounts[letter] || 0) + 1;
-    }
-
-    let repetitionFactor = 0;
-    for (let count of Object.values(letterCounts)) {
-        repetitionFactor += count - 1;
-    }
-
-    const repetitionPenalty = Math.max(0, 5 - repetitionFactor);
-
-    // 4. Vowel-consonant ratio
-    const vowelsSet = new Set(['a', 'e', 'i', 'o', 'u']);
-    let vowels = 0;
-    for (let letter of word) {
-        if (vowelsSet.has(letter)) vowels++;
-    }
-
-    const consonants = word.length - vowels;
-    let balanceFactor = 1;
-
-    if (vowels === 0 || consonants === 0) {
-        balanceFactor = 1.5;
-    } else if (Math.min(vowels, consonants) / Math.max(vowels, consonants) < 0.25) {
-        balanceFactor = 1.3;
-    }
-
-    // 5. Final score calculation
-    const finalScore = (lengthScore + difficultyScore + repetitionPenalty) * balanceFactor;
-    return (Math.round(finalScore * 10) / 10 | 0);
-}
 
 async function anagramsScore(message, onlyScore) {
     const serverId = message.guild.id;
@@ -315,4 +252,4 @@ async function anagramsLeaderboard(message) {
     await message.channel.send({ embeds: [embed] });
 }
 
-export { newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard };
+export { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard };
