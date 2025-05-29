@@ -1,6 +1,6 @@
 import { Attachment, EmbedBuilder } from 'discord.js';
-import { YtDlp } from 'ytdlp-nodejs';
-const ytdlp = new YtDlp();
+// import { YtDlp } from 'ytdlp-nodejs';
+// const ytdlp = new YtDlp();
 
 async function dict(message) {
     const word = message.content.split(' ')[1].toLowerCase();
@@ -66,13 +66,13 @@ async function dict(message) {
 //     }
 // }
 
-async function streamMusic(message) {
-    const url = message.content.split(" ")[1];
-    const stream = ytdlp.stream(url, {
-        format: {
-            filter: 'audioonly',
-        }
-    });
-}
+// async function streamMusic(message) {
+//     const url = message.content.split(" ")[1];
+//     const stream = ytdlp.stream(url, {
+//         format: {
+//             filter: 'audioonly',
+//         }
+//     });
+// }
 
-export { dict, instaVid };
+export { dict };
