@@ -93,7 +93,7 @@ async function hint(message) {
     let w = doc.originalWord;
     let description, footer;
     if(doc.hints === 1) {
-        description = doc.Gloss
+        description = doc.gloss
         footer = 'definition';
         timeoutMap.set(serverId, setTimeout(async () => {
             skip(message);
