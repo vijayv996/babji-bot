@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: '../.env' });
 import { dict } from './genaral-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './anagrams.js';

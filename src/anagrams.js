@@ -4,7 +4,7 @@ import { readFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import { isValidWord } from './word-chain.js';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: '../.env' });
 
 (async () => {
     await connect();
