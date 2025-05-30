@@ -238,7 +238,7 @@ async function updateLeaderBoard(message, wordScore) {
 async function anagramsLeaderboard(message) {
     const serverId = message.guild.id;
     const leaderboard = await anagramsDB.collection('leaderboard').find({ serverId: serverId }).sort({ score: -1 }).limit(10).toArray();
-    let description = "5Heads on the server:\n\n";
+    let description = "5Heads on the server:\n";
     leaderboard.forEach((entry, index) => {
         description += `${index + 1}. <@!${entry.userId}>: ${entry.score}\n`;
     });
