@@ -1,5 +1,5 @@
 import { Attachment, EmbedBuilder } from 'discord.js';
-
+import youtubedl from 'youtube-dl-exec';
 
 async function dict(message) {
     const word = message.content.split(' ')[1].toLowerCase();
@@ -20,4 +20,21 @@ async function dict(message) {
     await message.channel.send({ embeds: [embed] });
 }
 
-export { dict };
+async function instaDl(message, filePath) {
+    const url = message.content.split(" ")[1];
+    filePath += url.split("/")[4] + '.mp4';
+    try {
+        let promise = await youtubedl(url, { output: filePath });
+        console.log(promise);
+        await message.reply({
+            files: [{
+                attachment: filePath
+            }]
+        });
+    } catch(error) {
+        console.log(error);
+        message.reply("Download failed");
+    }
+}
+
+export { dict, instaDl };

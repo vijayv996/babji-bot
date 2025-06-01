@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict } from './genaral-modules.js';
+import { dict, instaDl } from './genaral-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './word-chain.js';
@@ -48,9 +48,9 @@ client.on("messageCreate", async (message) => {
         googleImage(message);
     }
 
-    // if(message.content.startsWith(".instadl")) {
-    //     instaVid(message);
-    // }
+    if(message.content.startsWith(".instadl")) {
+        instaDl(message, process.env.INSTA_PATH);
+    }
 
     if (message.content === '.ping') {  
         // message.channel.send(`Overall Latency is ${Date.now() - message.createdTimestamp}ms.`);
