@@ -49,7 +49,7 @@ client.on("messageCreate", async (message) => {
     }
 
     if(message.content.startsWith(".instadl")) {
-        instaDl(message, process.env.INSTA_PATH);
+        instaDl(message, process.env.INSTA_PATH, process.env.INSTA_COOKIES);
     }
 
     if (message.content === '.ping') {  

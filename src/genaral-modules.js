@@ -20,11 +20,14 @@ async function dict(message) {
     await message.channel.send({ embeds: [embed] });
 }
 
-async function instaDl(message, filePath) {
+async function instaDl(message, filePath, cookies) {
     const url = message.content.split(" ")[1];
     filePath += url.split("/")[4] + '.mp4';
     try {
-        let promise = await youtubedl(url, { output: filePath });
+        let promise = await youtubedl(url, { 
+            output: filePath,
+            cookies: cookies
+        });
         console.log(promise);
         await message.reply({
             files: [{
