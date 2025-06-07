@@ -52,7 +52,7 @@ async function newAnagram(message) {
                 .setTitle(scrambled)
                 .setDescription('new anagram');
 
-    message.channel.send({ embeds: [embed] });
+    await message.channel.send({ embeds: [embed] });
 
     cancelTimeout(serverId);
     timeoutMap.set(serverId, setTimeout(async () => {
@@ -132,7 +132,7 @@ async function hint(message) {
         .setTitle(doc.scrambledWord)
         .setDescription(description)
         .setFooter({ text: footer });
-    message.channel.send({ embeds: [embed] });
+    await message.channel.send({ embeds: [embed] });
     
 }
 
