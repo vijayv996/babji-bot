@@ -19,6 +19,7 @@
   "homepage": "https://github.com/vijayv996/charizard-bot#readme",
   "description": "",
   "dependencies": {
+    "@discordjs/opus": "^0.10.0",
     "@discordjs/voice": "^0.18.0",
     "child_process": "^1.0.2",
     "csv-parse": "^5.6.0",
