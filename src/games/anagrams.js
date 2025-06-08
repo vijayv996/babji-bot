@@ -1,10 +1,10 @@
-import { connect, getDb, DB_NAMES } from './database.js';
+import { connect, getDb, DB_NAMES } from './../utils/database.js';
 import { EmbedBuilder  } from 'discord.js';
 import { readFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import { isValidWord } from './word-chain.js';
 import dotenv from 'dotenv';
-dotenv.config({ path: '../.env' });
+dotenv.config({ path: '../../.env' });
 
 (async () => {
     await connect();

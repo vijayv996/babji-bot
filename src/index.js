@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict, instaDl, streamMusic, streamMusicSimple } from './general-modules.js';
+import { dict, instaDl, streamMusic, streamMusicSimple } from './utils/general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
-import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './anagrams.js';
-import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './word-chain.js';
+import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
+import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './games/word-chain.js';
 
 const client = new Client({
     intents: [

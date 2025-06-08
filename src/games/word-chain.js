@@ -1,5 +1,5 @@
 import { EmbedBuilder } from 'discord.js';
-import { connect, getDb, DB_NAMES } from './database.js';
+import { connect, getDb, DB_NAMES } from './../utils/database.js';
 
 (async () => {
     await connect();
