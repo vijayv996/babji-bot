@@ -41,7 +41,7 @@ async function instaDl(message, filePath, cookies) {
     }
 }
 
-async function streamMusic(message, cookies) {
+async function streamMusic(message) {
 
     if(!message.member?.voice.channel) {
         await message.reply('join a voice channel first');
@@ -60,7 +60,6 @@ async function streamMusic(message, cookies) {
         const ytdlp = spawn('yt-dlp', [
             '-o', '-', 
             '--format', 'bestaudio/best',
-            'cookies', cookies,
             url
         ]);
 
@@ -109,7 +108,6 @@ async function streamMusicSimple(message) {
             adapterCreator: message.guild.voiceAdapterCreator,
         });
 
-        // Single command approach (similar to the FAQ example)
         const stream = spawn('yt-dlp', [
             '-o', '-',
             '--format', 'bestaudio',

@@ -54,16 +54,16 @@ client.on("messageCreate", async (message) => {
     }
 
     if(message.content.startsWith(".play")) {
-        streamMusic(message);
-    }
-
-    if(message.content.startsWith(".splay")) {
         streamMusicSimple(message);
     }
 
+    if(message.content.startsWith(".fplay")) {
+        streamMusic(message);
+    }
+
     if (message.content === '.ping') {  
-        // message.channel.send(`Overall Latency is ${Date.now() - message.createdTimestamp}ms.`);
         message.channel.send(`🏓 API Latency is ${client.ws.ping}ms`);
+        // message.channel.send(`Overall Latency is ${Date.now() - message.createdTimestamp}ms.`);
     }
     
     const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());
