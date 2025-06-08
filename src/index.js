@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict, instaDl } from './general-modules.js';
+import { dict, instaDl, streamMusic, streamMusicSimple } from './general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './word-chain.js';
@@ -10,7 +10,8 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildVoiceStates
     ]
 });
 
@@ -50,6 +51,14 @@ client.on("messageCreate", async (message) => {
 
     if(message.content.startsWith(".instadl")) {
         instaDl(message, process.env.INSTA_PATH, process.env.INSTA_COOKIES);
+    }
+
+    if(message.content.startsWith(".play")) {
+        streamMusic(message);
+    }
+
+    if(message.content.startsWith(".splay")) {
+        streamMusicSimple(message);
     }
 
     if (message.content === '.ping') {  
