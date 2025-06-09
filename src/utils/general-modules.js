@@ -90,7 +90,11 @@ async function streamMusic(message) {
     }
 }
 
-async function streamMusicSimple(message) {
+let player = null;
+let connection = null;
+let queue = [];
+
+async function streamHandler(message) {
     const voiceChannel = message.member?.voice?.channel;
     if (!voiceChannel) {
         return message.reply('You need to be in a voice channel!');
@@ -102,28 +106,38 @@ async function streamMusicSimple(message) {
     }
 
     try {
-        const connection = joinVoiceChannel({
-            channelId: voiceChannel.id,
-            guildId: message.guild.id,
-            adapterCreator: message.guild.voiceAdapterCreator,
-        });
+        if(!connection) {
+                connection = joinVoiceChannel({
+                channelId: voiceChannel.id,
+                guildId: message.guild.id,
+                adapterCreator: message.guild.voiceAdapterCreator,
+            });
+        }
 
-        const stream = spawn('yt-dlp', [
-            '-o', '-',
-            '--format', 'bestaudio',
-            url
-        ], { stdio: ['ignore', 'pipe', 'pipe'] });
+        if(!player) {
+            player = createAudioPlayer();
+        }
 
-        const audioResource = createAudioResource(stream.stdout, {
-            inputType: StreamType.Arbitrary,
-        });
-
-        const player = createAudioPlayer();
-        player.play(audioResource);
-        connection.subscribe(player);
+        if(player.state.status === AudioPlayerStatus.Playing) {
+            queue.push(url);
+            message.channel.send("🎵 Added to queue!");
+        } else {
+            playMusic(url);
+        }
 
         player.on(AudioPlayerStatus.Playing, () => {
-            message.reply('🎵 Now playing!');
+            message.channel.send('🎵 Now playing!');
+            // ideally display the song name
+        });
+
+        player.on(AudioPlayerStatus.Idle, () => {
+            message.reply('🎵 Finished playing!');
+            const url = queue.shift();
+            if(url) {
+                playMusic(url);
+            } else {
+                message.channel.send('🎵 Queue is empty!');
+            }
         });
 
         player.on('error', (error) => {
@@ -137,5 +151,34 @@ async function streamMusicSimple(message) {
     }
 }
 
+function skipSong() {
+    player.stop();
+    const url = queue.shift();
+    if(url) {
+        playMusic(url);
+    }
+}
 
-export { dict, instaDl, streamMusic, streamMusicSimple };
+function playMusic(url) {
+    const stream = spawn('yt-dlp', [
+        '-o', '-',
+        '--format', 'bestaudio',
+        url
+    ], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+    const audioResource = createAudioResource(stream.stdout, {
+        inputType: StreamType.Arbitrary,
+    });
+    
+    player.play(audioResource);
+    connection.subscribe(player);
+}
+
+function stopMusic() {
+    player.stop();
+    connection.destroy();
+    player = null;
+    connection = null;
+}
+
+export { dict, instaDl, streamMusic, streamHandler, stopMusic, skipSong };

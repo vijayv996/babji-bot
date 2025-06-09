@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict, instaDl, streamMusic, streamMusicSimple } from './utils/general-modules.js';
+import { dict, instaDl, streamMusic, streamHandler, stopMusic, skipSong } from './utils/general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './games/word-chain.js';
@@ -54,11 +54,19 @@ client.on("messageCreate", async (message) => {
     }
 
     if(message.content.startsWith(".play")) {
-        streamMusicSimple(message);
+        streamHandler(message);
     }
 
     if(message.content.startsWith(".fplay")) {
         streamMusic(message);
+    }
+
+    if(message.content.startsWith(".stop")) {
+        stopMusic();
+    }
+
+    if(message.content.startsWith(".skip")) {
+        skipSong(message);
     }
 
     if (message.content === '.ping') {  
