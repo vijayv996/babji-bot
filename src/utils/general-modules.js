@@ -41,6 +41,33 @@ async function instaDl(message, filePath, cookies) {
     }
 }
 
+async function ytDl(message, filePath) {
+    const url = message.content.split(" ")[1];
+    if(url.split("/").length < 5) {
+        filePath += url.split("/")[3].split("_")[1];
+    } else {
+        filePath += url.split("/")[4];
+    }
+    try {
+        let promise = await youtubedl(url, { 
+            output: filePath
+        });
+        console.log(promise);
+        await message.reply({
+            files: [{
+                attachment: filePath + '.webm'
+            }]
+        });
+    } catch(error) {
+        console.log(error);
+        if(error instanceof DOMException && error.name === 'AbortError') {
+            message.reply("File size is too large for discord");
+            return;
+        }
+        message.reply("Download failed");
+    }
+}
+
 async function streamMusic(message) {
 
     if(!message.member?.voice.channel) {
@@ -181,4 +208,4 @@ function stopMusic() {
     connection = null;
 }
 
-export { dict, instaDl, streamMusic, streamHandler, stopMusic, skipSong };
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong };
