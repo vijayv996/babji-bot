@@ -1,7 +1,10 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '../../.env' });
 import { Attachment, EmbedBuilder, VoiceChannel } from 'discord.js';
 import youtubedl from 'youtube-dl-exec';
 import { spawn } from 'child_process';
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } from '@discordjs/voice';
+import { GoogleGenAI } from '@google/genai';
 async function dict(message) {
     const word = message.content.split(' ')[1].toLowerCase();
     let response = await fetch(`https://api.datamuse.com/words?sp=${word}&md=d&max=1`);
@@ -208,4 +211,13 @@ function stopMusic() {
     connection = null;
 }
 
-export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong };
+async function genMsg(message, key) {
+    const ai = new GoogleGenAI({key});
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.0-flash-lite',
+        contents: msg,
+    });
+    await message.reply(response.text);
+}
+
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, genMsg };
