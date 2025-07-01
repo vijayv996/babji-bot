@@ -122,6 +122,9 @@ client.on("messageCreate", async (message) => {
         verifyChain(message);
     }
 
-    genMsg(message, process.env.GEMINI_API_KEY);
+    const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
+    if(interactiveChannels.includes(message.channel.id)) {
+        genMsg(message);
+    }
 
 });

@@ -211,8 +211,14 @@ function stopMusic() {
     connection = null;
 }
 
-async function genMsg(message, key) {
-    const ai = new GoogleGenAI({key});
+// function bernoulliP(p) {
+//     return Math.random() < p;
+// }
+
+const ai = new GoogleGenAI({key: process.env.GEMINI_API_KEY});
+async function genMsg(message) {
+    if(Math.random() > 0.1) return; // only reply 10% of the time
+    // should ideally written as if(!bernoulliP(0.1)) return; ?
     const response = await ai.models.generateContent({
         model: 'gemini-2.0-flash-lite',
         contents: msg,
