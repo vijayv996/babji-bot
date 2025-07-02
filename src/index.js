@@ -122,9 +122,10 @@ client.on("messageCreate", async (message) => {
         verifyChain(message);
     }
 
-    const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
-    if(interactiveChannels.includes(message.channel.id)) {
-        genMsg(message);
-    }
+    // const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
+    // if(interactiveChannels.includes(message.channel.id)) {
+    //     genMsg(message);
+    // }
+    genMsg(message);
 
 });
