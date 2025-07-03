@@ -1,10 +1,9 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: '../../.env' });
 import { Attachment, EmbedBuilder, VoiceChannel } from 'discord.js';
 import youtubedl from 'youtube-dl-exec';
 import { spawn } from 'child_process';
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } from '@discordjs/voice';
 import { GoogleGenAI } from '@google/genai';
+let ai;
 async function dict(message) {
     const word = message.content.split(' ')[1].toLowerCase();
     let response = await fetch(`https://api.datamuse.com/words?sp=${word}&md=d&max=1`);
@@ -211,19 +210,22 @@ function stopMusic() {
     connection = null;
 }
 
-// function bernoulliP(p) {
-//     return Math.random() < p;
-// }
+function initGemini(key) {
+    ai = new GoogleGenAI({key: key});
+    console.log("gemini AI initialized");
+}
 
-const ai = new GoogleGenAI({key: process.env.GEMINI_API_KEY});
-async function genMsg(message) {
-    if(Math.random() > 0.1) return; // only reply 10% of the time
-    // should ideally written as if(!bernoulliP(0.1)) return; ?
+async function genMsg(message, systemInstruction) {
+    const msg = message.member.displayName + ": " + message.content;
+    console.log(msg);
     const response = await ai.models.generateContent({
         model: 'gemini-2.0-flash-lite',
         contents: msg,
+        config: {
+            systemInstruction: systemInstruction
+        },
     });
     await message.reply(response.text);
 }
 
-export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, genMsg };
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, genMsg, initGemini };

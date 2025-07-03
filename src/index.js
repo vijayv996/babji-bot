@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, genMsg } from './utils/general-modules.js';
+import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, genMsg, initGemini } from './utils/general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './games/word-chain.js';
@@ -14,10 +14,12 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates
     ]
 });
-
+let systemInstruction;
 client.on("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
     loadCsv(process.env.CSV_PATH);
+    initGemini(process.env.GEMINI_API_KEY);
+    systemInstruction = process.env.SYSTEM_INSTRUCTION;
 });
 
 client.login(process.env.DISCORD_TOKEN);
@@ -34,12 +36,24 @@ client.on("interactionCreate", async (interaction) => {
 
  });
 
-client.on("messageCreate", async (message) => {
-
+ client.on("messageCreate", async (message) => {
+     
     if(message.author.bot) {
         return;
     }
-
+    
+    const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
+    if(interactiveChannels.includes(message.channel.id)) {
+        if(message.mentions.has(client.user.id)) {
+            if(bernoulliP(0.5)) {
+                genMsg(message, systemInstruction)
+            }
+        }
+        if(bernoulliP(0.1)) {
+            genMsg(message, systemInstruction);
+        }
+    }
+    
     if(message.content.startsWith(".dict")) {
         dict(message);
         return;
@@ -122,10 +136,9 @@ client.on("messageCreate", async (message) => {
         verifyChain(message);
     }
 
-    // const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
-    // if(interactiveChannels.includes(message.channel.id)) {
-    //     genMsg(message);
-    // }
-    genMsg(message);
 
 });
+
+function bernoulliP(p) {
+    return Math.random() < p;
+}
