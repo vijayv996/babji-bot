@@ -14,7 +14,10 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates
     ]
 });
+
 let systemInstruction;
+const convo = [];
+
 client.on("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
     loadCsv(process.env.CSV_PATH);
@@ -34,9 +37,9 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.reply("Pong!");
     }
 
- });
+});
 
- client.on("messageCreate", async (message) => {
+client.on("messageCreate", async (message) => {
      
     if(message.author.bot) {
         return;
@@ -44,13 +47,15 @@ client.on("interactionCreate", async (interaction) => {
     
     const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
     if(interactiveChannels.includes(message.channel.id)) {
+        if(convo.length > 9) convo.shift();
+        convo.push(message.member.displayName + ": " + message.content + "\n");
         if(message.mentions.has(client.user.id)) {
-            if(bernoulliP(0.5)) {
-                genMsg(message, systemInstruction)
+            if(bernoulliP(0.2)) {
+                genMsg(message, systemInstruction, convo)
             }
         }
-        if(bernoulliP(0.1)) {
-            genMsg(message, systemInstruction);
+        if(bernoulliP(0.05)) {
+            genMsg(message, systemInstruction, convo);
         }
     }
     
@@ -135,7 +140,6 @@ client.on("interactionCreate", async (interaction) => {
 
         verifyChain(message);
     }
-
 
 });
 
