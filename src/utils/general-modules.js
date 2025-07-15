@@ -215,12 +215,14 @@ function initGemini(key) {
     console.log("gemini AI initialized");
 }
 
-async function genMsg(message, systemInstruction) {
-    const msg = message.member.displayName + ": " + message.content;
-    console.log(msg);
+async function genMsg(message, systemInstruction, convo) {
+    const contents = convo.map((messageText, i) => ({
+        role: 'user',
+        parts: [{ text: messageText }],
+    }));
     const response = await ai.models.generateContent({
         model: 'gemini-2.0-flash-lite',
-        contents: msg,
+        contents: contents,
         config: {
             systemInstruction: systemInstruction
         },
