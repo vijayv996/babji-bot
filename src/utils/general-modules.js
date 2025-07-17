@@ -216,6 +216,7 @@ function initGemini(key) {
 }
 
 async function genMsg(message, systemInstruction, convo) {
+    await message.channel.sendTyping();
     const contents = convo.map((messageText, i) => ({
         role: 'user',
         parts: [{ text: messageText }],
