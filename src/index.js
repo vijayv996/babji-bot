@@ -50,7 +50,7 @@ client.on("messageCreate", async (message) => {
         if(convo.length > 9) convo.shift();
         convo.push(message.member.displayName + ": " + message.content + "\n");
         if(message.mentions.has(client.user.id)) {
-            if(bernoulliP(0.2)) {
+            if(bernoulliP(0.5)) {
                 genMsg(message, systemInstruction, convo)
             }
         }
