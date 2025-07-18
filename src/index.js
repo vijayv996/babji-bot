@@ -48,10 +48,14 @@ client.on("messageCreate", async (message) => {
     const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
     if(interactiveChannels.includes(message.channel.id)) {
         if(convo.length > 9) convo.shift();
-        convo.push(message.member.displayName + ": " + message.content + "\n");
+        convo.push({
+            role: 'user',
+            parts: [{ text: message.member.displayName + ": " + message.content }],
+        });
         if(message.mentions.has(client.user.id)) {
             if(bernoulliP(0.5)) {
                 genMsg(message, systemInstruction, convo)
+                return;
             }
         }
         if(bernoulliP(0.05)) {

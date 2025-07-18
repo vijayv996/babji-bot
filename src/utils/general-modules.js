@@ -217,13 +217,9 @@ function initGemini(key) {
 
 async function genMsg(message, systemInstruction, convo) {
     await message.channel.sendTyping();
-    const contents = convo.map((messageText, i) => ({
-        role: 'user',
-        parts: [{ text: messageText }],
-    }));
     const response = await ai.models.generateContent({
         model: 'gemini-2.0-flash-lite',
-        contents: contents,
+        contents: convo,
         config: {
             systemInstruction: systemInstruction
         },
