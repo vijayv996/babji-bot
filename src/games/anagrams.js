@@ -20,9 +20,17 @@ async function loadCsv(filepath) {
         const content = await readFile(filepath);
         csvInMemory = parse(content, { columns: true });
         console.log("loaded csv into memory");
-    } catch (error) {
-        console.error(error);
+    } catch (e) {
+        console.error("error sending message",e);
         csvInMemory = null;
+    }
+}
+
+async function safeSend(channel, embed) {
+    try {
+        await channel.send({ embeds: [embed] });
+    } catch(e) {
+        console.log(e);
     }
 }
 
@@ -52,7 +60,7 @@ async function newAnagram(message) {
                 .setTitle(scrambled)
                 .setDescription('new anagram');
 
-    await message.channel.send({ embeds: [embed] });
+    await safeSend(message.channel, embed);
 
     cancelTimeout(serverId);
     timeoutMap.set(serverId, setTimeout(async () => {
@@ -132,7 +140,7 @@ async function hint(message) {
         .setTitle(doc.scrambledWord)
         .setDescription(description)
         .setFooter({ text: footer });
-    await message.channel.send({ embeds: [embed] });
+    await safeSend(message.channel, embed);
     
 }
 
@@ -146,7 +154,9 @@ async function skip(message) {
             }
         }
     )
-    await message.channel.send(`:hourglass: Time's up! The word was: ${result.originalWord}`);
+    try{
+        await message.channel.send(`:hourglass: Time's up! The word was: ${result.originalWord}`);
+    } catch(e) { console.log(e); }
     await new Promise(r => setTimeout(r, 3000));
     newAnagram(message);
 }
@@ -162,7 +172,9 @@ async function verifyAnagram(message) {
     const userMessage = message.content.toLowerCase();
     if(!doc.solved && userMessage !== originalWord && isValidAnagram(userMessage, originalWord)) {
         if(await isValidWord(userMessage)) {
-            await message.reply(`You got 30 points for finding anagram but not exact answer. Think again`);
+            try {
+                await message.reply(`You got 30 points for finding anagram but not exact answer. Think again`);
+            } catch(e) { console.log(e); }
             await updateLeaderBoard(message, 30);
         }
         return;
@@ -188,7 +200,9 @@ async function verifyAnagram(message) {
         await updateLeaderBoard(message, wordScore);
         await anagramsDB.collection('anagrams').updateOne( { serverId: serverId }, { $set: { solved: true } } );
         const userScore = await anagramsScore(message, true);
-        await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
+        try{
+            await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
+        } catch(e) { console.log(e); }
     }
 
     if(!doc.solved) {
@@ -249,7 +263,7 @@ async function anagramsLeaderboard(message) {
         .setDescription(description)
         .setFooter({ text: "Anagrams Game" });
 
-    await message.channel.send({ embeds: [embed] });
+    await safeSend(message.channel, embed);
 }
 
 export { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard };
