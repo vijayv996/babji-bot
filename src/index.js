@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, genMsg, initGemini } from './utils/general-modules.js';
+import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini } from './utils/general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './games/word-chain.js';
@@ -61,6 +61,11 @@ client.on("messageCreate", async (message) => {
         if(bernoulliP(0.05)) {
             genMsg(message, systemInstruction, convo);
         }
+    }
+
+    if(message.content.startsWith(".del")) {
+        delMsg(message);
+        return;
     }
     
     if(message.content.startsWith(".dict")) {

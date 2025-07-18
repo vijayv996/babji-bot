@@ -215,16 +215,37 @@ function initGemini(key) {
     console.log("gemini AI initialized");
 }
 
-async function genMsg(message, systemInstruction, convo) {
-    await message.channel.sendTyping();
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash-lite',
-        contents: convo,
-        config: {
-            systemInstruction: systemInstruction
-        },
-    });
-    await message.reply(response.text);
+async function delMsg(message) {
+    if(!message.reference) {
+        console.log("message is not a reply. reply to something to delete");
+        return;
+    }
+    if(!message.deletable) {
+        console.log(`cannot delete. no permission in ${message.guild.name}`);
+        return;
+    }
+    try {
+        const repliedMessage = await message.fetchReference();
+        repliedMessage.delete();
+        message.delete();
+        console.log("messages deleted.");
+    } catch (e) {
+        console.log("error deleteing messages:", e);
+    }
 }
 
-export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, genMsg, initGemini };
+async function genMsg(message, systemInstruction, convo) {
+    await message.channel.sendTyping();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.0-flash-lite',
+            contents: convo,
+            config: {
+                systemInstruction: systemInstruction
+            },
+        });
+        await message.reply(response.text);
+    } catch(e) { console.log("generation failed." + e)}
+}
+
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini };
