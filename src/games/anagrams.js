@@ -30,7 +30,7 @@ async function safeSend(channel, embed) {
     try {
         await channel.send({ embeds: [embed] });
     } catch(e) {
-        console.log(e);
+        console.error(e);
     }
 }
 
@@ -156,7 +156,7 @@ async function skip(message) {
     )
     try{
         await message.channel.send(`:hourglass: Time's up! The word was: ${result.originalWord}`);
-    } catch(e) { console.log(e); }
+    } catch(e) { console.error(e); }
     await new Promise(r => setTimeout(r, 3000));
     newAnagram(message);
 }
@@ -174,7 +174,7 @@ async function verifyAnagram(message) {
         if(await isValidWord(userMessage)) {
             try {
                 await message.reply(`You got 30 points for finding anagram but not exact answer. Think again`);
-            } catch(e) { console.log(e); }
+            } catch(e) { console.error(e); }
             await updateLeaderBoard(message, 30);
         }
         return;
@@ -202,7 +202,7 @@ async function verifyAnagram(message) {
         const userScore = await anagramsScore(message, true);
         try{
             await message.reply(`:tada: You got it right! You got ${wordScore} points!. Your score is now ${userScore}.`);
-        } catch(e) { console.log(e); }
+        } catch(e) { console.error(e); }
     }
 
     if(!doc.solved) {
