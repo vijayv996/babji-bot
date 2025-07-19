@@ -38,7 +38,6 @@ async function newAnagram(message) {
     const serverId = message.guild.id;
     if(!csvInMemory) return;
     const row = csvInMemory[Math.floor(Math.random() * csvInMemory.length)];
-    console.log(row);
 
     let scrambled = scramble(row.Word);
     await new Promise(r => setTimeout(r, 3000));
@@ -104,8 +103,8 @@ async function hint(message) {
         description = doc.gloss
         footer = 'definition';
         timeoutMap.set(serverId, setTimeout(async () => {
-            skip(message);
-        }, 30000));
+            skipAnagram(message);
+        }, 900000));
     }
 
     let s = doc.scrambledWord;
@@ -141,10 +140,16 @@ async function hint(message) {
         .setDescription(description)
         .setFooter({ text: footer });
     await safeSend(message.channel, embed);
+
+    if(doc.hints === 1) {
+        try {
+            message.channel.send(`Next anagrams in 15 minutes. You can answer or you can do ".skip" `);
+        } catch(e) { console.error(e); }
+    }
     
 }
 
-async function skip(message) {
+async function skipAnagram(message) {
     const serverId = message.guild.id;
     const result = await anagramsDB.collection('anagrams').findOneAndUpdate(
         { serverId: serverId },
@@ -154,10 +159,12 @@ async function skip(message) {
             }
         }
     )
+    if(result.hints !== 0) return;
+    cancelTimeout(serverId);
     try{
         await message.channel.send(`:hourglass: Time's up! The word was: ${result.originalWord}`);
     } catch(e) { console.error(e); }
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, 10000));
     newAnagram(message);
 }
 
@@ -266,4 +273,4 @@ async function anagramsLeaderboard(message) {
     await safeSend(message.channel, embed);
 }
 
-export { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard };
+export { loadCsv, newAnagram, verifyAnagram, skipAnagram, anagramsScore, anagramsLeaderboard };

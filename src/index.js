@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
 import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini } from './utils/general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
-import { loadCsv, newAnagram, verifyAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
+import { loadCsv, newAnagram, verifyAnagram, skipAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './games/word-chain.js';
 
 const client = new Client({
@@ -93,7 +93,7 @@ client.on("messageCreate", async (message) => {
         stopMusic();
     }
 
-    if(message.content.startsWith(".skip")) {
+    if(message.content.startsWith(".skipsong")) {
         skipSong(message);
     }
 
@@ -111,6 +111,11 @@ client.on("messageCreate", async (message) => {
         if(message.content.startsWith(".anagrams") && message.author.id == process.env.ADMIN_ID) {
             message.channel.send("Anagrams game started! The anagram");
             newAnagram(message);
+            return;
+        }
+
+        if(message.content.startsWith(".skip")) {
+            skipAnagram(message);
             return;
         }
 
