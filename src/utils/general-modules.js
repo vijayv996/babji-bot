@@ -22,7 +22,7 @@ async function dict(message) {
             .setDescription(definitions);
         
         await message.channel.send({ embeds: [embed] });
-    } catch(e) { console.log("error", e); }    
+    } catch(e) { console.error("error", e); }    
 }
 
 async function instaDl(message, filePath, cookies) {
@@ -40,7 +40,7 @@ async function instaDl(message, filePath, cookies) {
             }]
         });
     } catch(error) {
-        console.log(error);
+        console.error(error);
         message.reply("Download failed");
     }
 }
@@ -63,7 +63,7 @@ async function ytDl(message, filePath) {
             }]
         });
     } catch(error) {
-        console.log(error);
+        console.error(error);
         if(error instanceof DOMException && error.name === 'AbortError') {
             message.reply("File size is too large for discord");
             return;
@@ -117,7 +117,7 @@ async function streamMusic(message) {
         player.play(resource);
 
     } catch(error) {
-        console.log(error);
+        console.error(error);
     }
 }
 
@@ -247,7 +247,7 @@ async function genMsg(message, systemInstruction, convo) {
             },
         });
         await message.reply(response.text);
-    } catch(e) { console.log("generation failed." + e)}
+    } catch(e) { console.error("generation failed." + e)}
 }
 
 export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini };
