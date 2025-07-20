@@ -63,7 +63,7 @@ client.on("messageCreate", async (message) => {
         }
     }
 
-    if(message.content.startsWith(".del")) {
+    if(message.content.startsWith(".del") && message.author.id == process.env.ADMIN_ID) {
         delMsg(message);
         return;
     }
