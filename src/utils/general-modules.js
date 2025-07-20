@@ -250,4 +250,30 @@ async function genMsg(message, systemInstruction, convo) {
     } catch(e) { console.error("generation failed." + e)}
 }
 
-export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini };
+async function webhookMsg(interaction) {
+    try {
+        await interaction.deferReply({ ephemeral: true });
+        const targetMember = interaction.options.getMember('user');
+        const webhooks = await interaction.channel.fetchWebhooks();
+        let webhook = webhooks.find(wh => wh.name === 'babjiWebhook');
+
+        if (!webhook) {
+            webhook = await interaction.channel.createWebhook({
+                name: 'babjiWebhook',
+            });
+        }
+
+        await webhook.send({
+            content: interaction.options.getString('message'),
+            username: targetMember.displayName,
+            avatarURL: targetMember.displayAvatarURL(),
+        });
+        await interaction.editReply({ content: 'Message sent successfully!' });
+    } catch (e) {
+        await interaction.editReply({ content: 'Failed to send message.' });
+        console.error("error executing webhook command:", e);
+    }
+}
+
+
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg };

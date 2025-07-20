@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini } from './utils/general-modules.js';
+import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg } from './utils/general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, skipAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './games/word-chain.js';
@@ -35,6 +35,10 @@ client.on("interactionCreate", async (interaction) => {
 
     if(commandName === "ping") {
         await interaction.reply("Pong!");
+    }
+
+    if(commandName === "fakehook") {
+        webhookMsg(interaction);
     }
 
 });
