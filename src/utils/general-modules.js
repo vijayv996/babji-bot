@@ -250,6 +250,16 @@ async function genMsg(message, systemInstruction, convo) {
     } catch(e) { console.error("generation failed." + e)}
 }
 
+async function chat(message) {
+    await message.channel.sendTyping();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+        });
+        await message.reply(response.text);
+    } catch(e) { console.error("generation failed." + e)}   
+}
+
 async function webhookMsg(interaction) {
     try {
         await interaction.deferReply({ ephemeral: true });
@@ -276,4 +286,4 @@ async function webhookMsg(interaction) {
 }
 
 
-export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg };
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat };
