@@ -34,7 +34,7 @@ async function instaDl(message, filePath, cookies) {
             cookies: cookies
         });
         console.log(promise);
-        await message.reply({
+        await message.channel.send({
             files: [{
                 attachment: filePath
             }]
