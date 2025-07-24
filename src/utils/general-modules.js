@@ -255,6 +255,10 @@ async function chat(message) {
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
+            contents: message.content.split(".chat")[1],
+            config: {
+                systemInstruction: "answer must be less than 2000 characters" // discord message limit
+            }
         });
         await message.reply(response.text);
     } catch(e) { console.error("generation failed." + e)}   
