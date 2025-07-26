@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat } from './utils/general-modules.js';
+import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter } from './utils/general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, skipAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './games/word-chain.js';
@@ -48,6 +48,8 @@ client.on("messageCreate", async (message) => {
     if(message.author.bot) {
         return;
     }
+
+    wordCounter(message);
     
     const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
     if(interactiveChannels.includes(message.channel.id)) {

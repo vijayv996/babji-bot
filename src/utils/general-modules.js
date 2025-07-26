@@ -1,6 +1,7 @@
 import { Attachment, EmbedBuilder, VoiceChannel } from 'discord.js';
 import youtubedl from 'youtube-dl-exec';
 import { spawn } from 'child_process';
+import { getDb, DB_NAMES } from './../utils/database.js';
 import { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } from '@discordjs/voice';
 import { GoogleGenAI } from '@google/genai';
 let ai;
@@ -289,5 +290,29 @@ async function webhookMsg(interaction) {
     }
 }
 
+const wordCounterDB = getDb(DB_NAMES.WORD_COUNTER);
+const regexWord = /\b(?:n(?:[iIl!1|][gG9ğqQ]{2,}(?:[aA@4ä^]|[eE3ë]r?)|ihha|igha|iqqa))(?:\s*-\s*[aA@4ä^])?\b/gi;
 
-export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat };
+async function wordCounter(message) {
+    if(!regexWord.test(message.content.toLowerCase())) return;
+    await wordCounterDB.collection('count').updateOne(
+        { userId: message.author.id },
+        {
+            $set: {
+                username: message.member.displayName,
+            },
+            $inc: {
+                score: 1
+            }
+        },
+        { upsert: true }
+    );
+    const doc = await wordCounterDB.collection('count').findOne({ userId: message.author.id });
+    if(doc.score % 5 == 0) {
+        try {
+            await message.reply(`${doc.username} used n word ${doc.score} times`);
+        } catch(e) { console.error(e); }
+    }
+}
+
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter };

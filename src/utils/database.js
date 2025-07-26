@@ -6,7 +6,8 @@ let isConnected = false;
 
 const DB_NAMES = {
   ANAGRAMS: "anagramsDB",
-  WORD_CHAIN: "wordChainDB"
+  WORD_CHAIN: "wordChainDB",
+  WORD_COUNTER: "wordCounterDB"
 };
 
 async function connect() {
