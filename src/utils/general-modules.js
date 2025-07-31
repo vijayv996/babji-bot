@@ -1,4 +1,4 @@
-import { Attachment, EmbedBuilder, VoiceChannel } from 'discord.js';
+import { Attachment, Embed, EmbedBuilder, VoiceChannel } from 'discord.js';
 import youtubedl from 'youtube-dl-exec';
 import { spawn } from 'child_process';
 import { getDb, DB_NAMES } from './../utils/database.js';
@@ -315,4 +315,18 @@ async function wordCounter(message) {
     }
 }
 
-export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter };
+async function avatar(message) {
+    let user;
+    if(message.mentions.users.size > 0) {
+        user = message.mentions.users.first();
+    } else {
+        await message.reply("mention someone");
+    }
+    const avatarURL = user.displayAvatarURL({ dynamic: true, format: 'png', size: 256 });
+    const embed = new EmbedBuilder().setColor(0x000000).setTitle(`${user.username}'s Avatar`).setURL(avatarURL).setImage(avatarURL);
+    try {
+        await message.reply({ embeds: [embed] });
+    } catch(e) { console.log(e) }
+}
+
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter, avatar };
