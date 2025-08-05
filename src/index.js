@@ -50,24 +50,6 @@ client.on("messageCreate", async (message) => {
     }
 
     wordCounter(message);
-    
-    const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
-    if(interactiveChannels.includes(message.channel.id)) {
-        if(convo.length > 9) convo.shift();
-        convo.push({
-            role: 'user',
-            parts: [{ text: message.member.displayName + ": " + message.content }],
-        });
-        if(message.mentions.has(client.user.id)) {
-            if(bernoulliP(0.5)) {
-                genMsg(message, systemInstruction, convo)
-                return;
-            }
-        }
-        if(bernoulliP(0.05)) {
-            genMsg(message, systemInstruction, convo);
-        }
-    }
 
     if(message.content.startsWith(".av ")) {
         avatar(message);
@@ -120,6 +102,24 @@ client.on("messageCreate", async (message) => {
     if (message.content === '.ping') {  
         message.channel.send(`🏓 API Latency is ${client.ws.ping}ms`);
         // message.channel.send(`Overall Latency is ${Date.now() - message.createdTimestamp}ms.`);
+    }
+
+    const interactiveChannels = process.env.INTERACTIVE_CHANNELS.split(',').map(channel => channel.trim());
+    if(interactiveChannels.includes(message.channel.id)) {
+        if(convo.length > 9) convo.shift();
+        convo.push({
+            role: 'user',
+            parts: [{ text: message.member.displayName + ": " + message.content }],
+        });
+        if(message.mentions.has(client.user.id)) {
+            if(bernoulliP(0.5)) {
+                genMsg(message, systemInstruction, convo)
+                return;
+            }
+        }
+        if(bernoulliP(0.05)) {
+            genMsg(message, systemInstruction, convo);
+        }
     }
     
     const anagramChannels = process.env.ANAGRAM_CHANNELS.split(',').map(channel => channel.trim());
