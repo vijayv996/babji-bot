@@ -241,7 +241,7 @@ async function genMsg(message, systemInstruction, convo) {
     await message.channel.sendTyping();
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash-lite',
+            model: 'gemini-2.5-flash',
             contents: convo,
             config: {
                 systemInstruction: systemInstruction
