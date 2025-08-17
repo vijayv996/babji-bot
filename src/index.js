@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter, avatar } from './utils/general-modules.js';
+import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter, avatar, nBoard } from './utils/general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, skipAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './games/word-chain.js';
@@ -53,6 +53,11 @@ client.on("messageCreate", async (message) => {
 
     if(message.content.startsWith(".av ")) {
         avatar(message);
+        return;
+    }
+
+    if(message.content.startsWith(".nboard")) {
+        nBoard(message);
         return;
     }
 
@@ -147,7 +152,6 @@ client.on("messageCreate", async (message) => {
         }
 
         verifyAnagram(message);
-
     }
 
     const wordChainChannels = process.env.WORDCHAIN_CHANNELS.split(',').map(channel => channel.trim());

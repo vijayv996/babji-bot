@@ -315,6 +315,23 @@ async function wordCounter(message) {
     }
 }
 
+async function nBoard(message) {
+    const leaderboard = await wordCounterDB.collection('count').find().sort({ score: -1 }).limit(10).toArray();
+    let description = "";
+    leaderboard.forEach((entry, index) => {
+        description += `${index + 1}. <@!${entry.userId}>: ${entry.score}\n`;
+    });
+
+    const embed = new EmbedBuilder()
+        .setTitle("Top 10")
+        .setColor("#000000")
+        .setDescription(description)
+        .setFooter({ text: "The nihhaboard" });
+    try {
+        await message.reply({ embeds: [embed] });
+    } catch(e) { console.log(e) }
+}
+
 async function avatar(message) {
     let user;
     if(message.mentions.users.size > 0) {
@@ -329,4 +346,4 @@ async function avatar(message) {
     } catch(e) { console.log(e) }
 }
 
-export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter, avatar };
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter, avatar, nBoard };
