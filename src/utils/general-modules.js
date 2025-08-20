@@ -291,7 +291,7 @@ async function webhookMsg(interaction) {
 }
 
 const wordCounterDB = getDb(DB_NAMES.WORD_COUNTER);
-const regexWord = /\b(?:n(?:[iIl!1|][gG9ğqQ]{2,}(?:[aA@4ä^]|[eE3ë]r?)|ihha|igha|iqqa))(?:\s*-\s*[aA@4ä^])?\b/gi;
+const regexWord = /\b(?:n(?:[iIl!1|][gG9ğqQ]{2,}(?:[aA@4ä^]|[eE3ë]r?)|ihha|igha|iqqa))(?:\s*-\s*[aA@4ä^])?\b/i;
 
 async function wordCounter(message) {
     if(!regexWord.test(message.content.toLowerCase())) return;
