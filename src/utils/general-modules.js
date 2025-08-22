@@ -295,22 +295,27 @@ const regexWord = /\b(?:n(?:[iIl!1|][gG9ğqQ]{2,}(?:[aA@4ä^]|[eE3ë]r?)|ihha|ig
 
 async function wordCounter(message) {
     if(!regexWord.test(message.content.toLowerCase())) return;
+    const doc = await wordCounterDB.collection('count').findOne({ userId: message.author.id });
+    if(message.createdTimestamp - doc.time <= 5000) return;
+    console.log('pass');
+    
     await wordCounterDB.collection('count').updateOne(
         { userId: message.author.id },
         {
             $set: {
                 username: message.member.displayName,
+                time: message.createdTimestamp
             },
             $inc: {
-                score: 1
+                score: 1,
             }
         },
         { upsert: true }
     );
-    const doc = await wordCounterDB.collection('count').findOne({ userId: message.author.id });
-    if(doc.score % 5 == 0) {
+
+    if(Math.random() < 0.1) {
         try {
-            await message.reply(`${doc.username} used n word ${doc.score} times`);
+            await message.reply(`${doc.username} used n word ${doc.score + 1} times`);
         } catch(e) { console.error(e); }
     }
 }
