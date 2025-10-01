@@ -18,7 +18,7 @@ const client = new Client({
 let systemInstruction;
 const convo = [];
 
-client.on("ready", () => {
+client.on("clientReady", () => {
     console.log(`Logged in as ${client.user.tag}`);
     loadCsv(process.env.CSV_PATH);
     initGemini(process.env.GEMINI_API_KEY);
