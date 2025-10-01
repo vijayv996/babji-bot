@@ -265,6 +265,50 @@ async function chat(message) {
     } catch(e) { console.error("generation failed." + e)}   
 }
 
+async function tldr(currentMessage) {
+    if (!currentMessage.reference) {
+        await currentMessage.reply("You need to reply to a message to summarize.");
+        return;
+    }
+
+    try {
+        const repliedMessage = await currentMessage.fetchReference();
+
+        // Fetch messages after the replied message up to the current message
+        const messages = await currentMessage.channel.messages.fetch({
+            after: repliedMessage.id,
+            before: currentMessage.id,
+            limit: 10 // Adjust limit as needed
+        });
+
+        // Sort messages by creation time (oldest first)
+        const sortedMessages = Array.from(messages.values()).sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+
+        // Collect content, skipping the replied message itself
+        const conversation = sortedMessages.map(m => `${m.author.username}: ${m.content}`).join('\n');
+
+        if (!conversation.trim()) {
+            await currentMessage.reply("No messages to summarize after the replied message.");
+            return;
+        }
+
+        await currentMessage.channel.sendTyping();
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Summarize the following conversation:\n${conversation}`,
+            config: {
+                systemInstruction: "Provide a concise TLDR summary in under 2000 characters, focusing on key points and flow."
+            }
+        });
+
+        await currentMessage.reply(response.text);
+    } catch (e) {
+        console.error("Error in tldr:", e);
+        await currentMessage.reply("Failed to generate summary.");
+    }
+}
+
 async function webhookMsg(interaction) {
     try {
         await interaction.deferReply({ ephemeral: true });
@@ -351,4 +395,4 @@ async function avatar(message) {
     } catch(e) { console.log(e) }
 }
 
-export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter, avatar, nBoard };
+export { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, tldr, wordCounter, avatar, nBoard };

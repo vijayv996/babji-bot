@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
-import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, wordCounter, avatar, nBoard } from './utils/general-modules.js';
+import { dict, instaDl, ytDl, streamMusic, streamHandler, stopMusic, skipSong, delMsg, genMsg, initGemini, webhookMsg, chat, tldr, wordCounter, avatar, nBoard } from './utils/general-modules.js';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { loadCsv, newAnagram, verifyAnagram, skipAnagram, anagramsScore, anagramsLeaderboard } from './games/anagrams.js';
 import { newChain, verifyChain, wordChainScore, wordChainLeaderboard } from './games/word-chain.js';
@@ -50,6 +50,11 @@ client.on("messageCreate", async (message) => {
     }
 
     wordCounter(message);
+
+    if(message.content.startsWith(".tldr")) {
+        tldr(message);
+        return;
+    }
 
     if(message.content.startsWith(".av ")) {
         avatar(message);
